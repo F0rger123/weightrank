@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "WeightRank",
+    "slug": "weightrank",
+    "scheme": "weightrank",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0D10",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.weightrank"
+    },
+    "android": {
+      "package": "app.weightrank",
+      "versionCode": 1,
+      "permissions": ["android.permission.CAMERA"],
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0D10",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "updates": {
+      "enabled": false
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
