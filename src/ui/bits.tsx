@@ -1,6 +1,6 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { ReactNode } from "react";
-import { Pressable, StyleSheet, Text, View, ViewStyle } from "react-native";
+import { Pressable, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { ExerciseId } from "@/domain/exercises";
 import { Rank } from "@/domain/rating";
 import { C, F, R } from "./theme";
@@ -13,7 +13,7 @@ export const EXERCISE_ICON: Record<ExerciseId, keyof typeof MaterialCommunityIco
   plank: "timer-sand",
 };
 
-export function Card({ children, style }: { children: ReactNode; style?: ViewStyle }) {
+export function Card({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
   return <View style={[s.card, style]}>{children}</View>;
 }
 
