@@ -45,3 +45,4 @@ build.log
 modules/*/android/build/
 web.log
 .claude/launch.json
+release/
