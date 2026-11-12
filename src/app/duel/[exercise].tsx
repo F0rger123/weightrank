@@ -130,7 +130,7 @@ export default function DuelRun() {
           {d >= 0 ? "+" : ""}{d} → {profile.rating}
         </Text>
         {result.save.rankUp && <Text style={[F.h2, { color: C.accent }]}>Promoted to {rankFor(profile.rating).name}!</Text>}
-        <Text style={F.small}>+{result.save.xpGained} XP{tracker.view.rejected ? ` · ${tracker.view.rejected} reps didn't count` : ""}</Text>
+        <Text style={F.small}>+{result.save.xpGained} XP{tracker.view.rejected ? ` · ${tracker.view.rejected} ${tracker.view.rejected === 1 ? "rep" : "reps"} didn't count` : ""}</Text>
         {result.save.questsDone.map((q) => <Text key={q} style={[F.body, { color: C.good }]}>Quest done: {q}</Text>)}
         {result.save.newAchievements.map((a) => <Text key={a} style={[F.body, { color: C.accent }]}>Achievement: {a}</Text>)}
         <View style={{ alignSelf: "stretch", gap: 10 }}>

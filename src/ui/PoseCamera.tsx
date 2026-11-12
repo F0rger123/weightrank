@@ -85,7 +85,8 @@ export function PoseCamera({ facing, active, pose, tint, onFrame }: Props) {
     <View style={s.wrap} onLayout={onLayout}>
       {body}
       {pose && size.w > 0 && (
-        <Svg style={StyleSheet.absoluteFill} pointerEvents="none">
+        <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <Svg width={size.w} height={size.h} style={{ width: size.w, height: size.h }} viewBox={`0 0 ${size.w} ${size.h}`}>
           {BONES.filter(([a, b]) => seen(a) && seen(b)).map(([a, b]) => (
             <Line key={`${a}-${b}`} x1={X(pose[a].x)} y1={Y(pose[a].y)} x2={X(pose[b].x)} y2={Y(pose[b].y)} stroke={tint} strokeWidth={5} strokeLinecap="round" opacity={0.9} />
           ))}
@@ -93,6 +94,7 @@ export function PoseCamera({ facing, active, pose, tint, onFrame }: Props) {
             <Circle key={i} cx={X(pose[i].x)} cy={Y(pose[i].y)} r={6} fill={C.bg} stroke={tint} strokeWidth={3} />
           ))}
         </Svg>
+        </View>
       )}
       {status && (
         <View style={s.status}>
@@ -124,7 +126,7 @@ function Notice({ text, children }: { text: string; children?: React.ReactNode }
  */
 function Simulator({ active, onFrame }: { active: boolean; onFrame: Props["onFrame"] }) {
   const t0 = useRef(Date.now());
-  const [mode, setMode] = useState<"full" | "half" | "knees">("full");
+  const [mode, setMode] = useState<"full" | "half" | "knees" | "still">("still");
   const modeRef = useRef(mode);
   modeRef.current = mode;
   useEffect(() => {
@@ -132,7 +134,7 @@ function Simulator({ active, onFrame }: { active: boolean; onFrame: Props["onFra
     const id = setInterval(() => {
       const t = Date.now() - t0.current;
       const m = modeRef.current;
-      const elbow = cycle(t, 1600, 165, m === "half" ? 118 : 82);
+      const elbow = m === "still" ? 165 : cycle(t, 1600, 165, m === "half" ? 118 : 82);
       onFrame(pushupPose({ elbow, knee: m === "knees" ? 95 : 178 }), t);
     }, 33);
     return () => clearInterval(id);
@@ -141,7 +143,7 @@ function Simulator({ active, onFrame }: { active: boolean; onFrame: Props["onFra
     <View style={s.sim}>
       <Text style={F.label}>Simulated body · dev only</Text>
       <View style={{ flexDirection: "row", gap: 8, marginTop: 8 }}>
-        {(["full", "half", "knees"] as const).map((m) => (
+        {(["still", "full", "half", "knees"] as const).map((m) => (
           <Pressable key={m} onPress={() => setMode(m)} style={[s.chip, mode === m && { backgroundColor: C.accent }]}>
             <Text style={[s.chipText, mode === m && { color: C.accentInk }]}>{m}</Text>
           </Pressable>
@@ -158,7 +160,7 @@ const s = StyleSheet.create({
   btnText: { color: C.accentInk, fontWeight: "800" },
   status: { position: "absolute", bottom: 12, left: 12, right: 12, backgroundColor: "#000a", padding: 10, borderRadius: R.sm },
   statusText: { color: C.warn, fontSize: 12 },
-  sim: { position: "absolute", top: 110, alignSelf: "center", alignItems: "center", zIndex: 5 },
+  sim: { position: "absolute", top: 190, alignSelf: "center", alignItems: "center", zIndex: 5 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: R.pill, backgroundColor: C.surface2 },
   chipText: { color: C.text, fontSize: 12, fontWeight: "700" },
 });

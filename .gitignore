@@ -40,3 +40,5 @@ yarn-error.*
 /ios
 /android
 /android
+dist-web/
+build.log

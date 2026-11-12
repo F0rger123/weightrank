@@ -1,0 +1,26 @@
+-- Merging decision tree log ---
+manifest
+ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:1:1-4:12
+INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:1:1-4:12
+	package
+		INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml
+	xmlns:android
+		ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:1:11-69
+uses-permission#android.permission.CAMERA
+ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:2:3-63
+	android:name
+		ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:2:20-60
+uses-feature#android.hardware.camera.any
+ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:3:3-87
+	android:required
+		ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:3:60-84
+	android:name
+		ADDED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml:3:17-59
+uses-sdk
+INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml reason: use-sdk injection requested
+INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml
+INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml
+	android:targetSdkVersion
+		INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml
+	android:minSdkVersion
+		INJECTED from C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\AndroidManifest.xml

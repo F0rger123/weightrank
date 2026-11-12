@@ -61,7 +61,7 @@ export default function DuelTab() {
             <View style={[s.dot, { backgroundColor: r.color }]} />
             <Text style={[F.body, { flex: 1, fontWeight: r.id === rank.id ? "900" : "500" }]}>{r.name}</Text>
             <Text style={[F.small, F.number]}>{r.min}+</Text>
-            <Text style={[F.small, F.number, { width: 92, textAlign: "right" }]}>bots ≤ {RANK_CAP[r.id]} push-ups</Text>
+            <Text style={[F.small, F.number, { width: 110, textAlign: "right" }]}>bot max {RANK_CAP[r.id]}</Text>
           </View>
         ))}
       </Card>

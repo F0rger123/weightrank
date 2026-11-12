@@ -97,8 +97,8 @@ const s = StyleSheet.create({
   big: { fontSize: 120, lineHeight: 128, fontWeight: "900", color: C.text, letterSpacing: -4, textShadowColor: "#000a", textShadowRadius: 12 },
   unit: { fontSize: 48, color: C.muted },
   shadow: { textShadowColor: "#000", textShadowRadius: 6 },
-  flash: { alignSelf: "center", paddingHorizontal: 18, paddingVertical: 8, borderRadius: R.pill },
-  flashText: { color: C.accentInk, fontWeight: "900", letterSpacing: 1, fontSize: 15 },
+  flash: { alignSelf: "center", paddingHorizontal: 18, paddingVertical: 8, borderRadius: R.pill, maxWidth: "100%" },
+  flashText: { color: C.accentInk, fontWeight: "900", letterSpacing: 0.5, fontSize: 15, textAlign: "center" },
   issue: { alignSelf: "center", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#000b", paddingHorizontal: 14, paddingVertical: 8, borderRadius: R.pill, maxWidth: "100%" },
   issueText: { color: C.text, fontWeight: "700", fontSize: 14, flexShrink: 1 },
 });

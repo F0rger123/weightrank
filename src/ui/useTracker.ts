@@ -46,9 +46,12 @@ export function useTracker(
     const c = counter.current!;
     const o = optsRef.current;
     if (!o.enabled) {
+      // Not counting (e.g. before "go"), but still show live form feedback.
       if (t - lastUi.current > UI_MS) {
         lastUi.current = t;
         setPose(p);
+        const issues = p ? (ex.kind === "reps" ? (ex as RepExercise).measure(p)?.issues : (ex as HoldExercise).check(p)) : null;
+        setView((v) => ({ ...v, tracking: !!issues, issues: issues ?? ["body_hidden"] }));
       }
       return;
     }
@@ -81,7 +84,7 @@ export function useTracker(
       setPose(p);
       setView(toView(c, flash.current?.e ?? null));
     }
-  }, []);
+  }, [ex]);
 
   const reset = useCallback(() => {
     const c = counter.current!;

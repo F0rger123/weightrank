@@ -1,3 +1,21 @@
+# AGENTS.md: WeightRank
+
+## 0. First thing
+
+Someone pasted this repo's link and asked what it is or how to set it up? Follow
+[`docs/AI_GUIDE.md`](docs/AI_GUIDE.md). The developer rules below still apply.
+
+## Project rules
+
+- Game rules live in `src/domain` as pure, tested TypeScript. Screens don't hold business logic.
+- Rep counting must stay strict (full range only) and must not lose good reps. Add a test for any threshold change.
+- Bots must stay fair: keep `RANK_CAP` and the 7-15 push-ups at ~1000 rating test passing.
+- Everything is free. Never add a paywall, subscription, ads or paid API without the owner's yes.
+- Camera video and pose data never leave the phone.
+- Before committing: `npx tsc --noEmit && npm test`.
+
+## Expo notes
+
 This is an Expo/React Native mobile application. Prioritize mobile-first patterns, performance, and cross-platform compatibility.
 
 ## Expo has changed — do not trust your training data

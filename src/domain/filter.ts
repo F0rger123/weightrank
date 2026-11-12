@@ -47,25 +47,3 @@ function alpha(cutoff: number, dt: number) {
   const tau = 1 / (2 * Math.PI * cutoff);
   return 1 / (1 + tau / dt);
 }
-
-/**
- * Estimate the true turning point of a rep from the three samples around it.
- * If frames around the bottom were dropped, the lowest sample we saw may be
- * shallower than the real bottom. A parabola through (t0,a0),(t1,a1),(t2,a2)
- * gives the vertex. Returns null if the fit is not a valid minimum.
- */
-export function parabolicMin(
-  t0: number, a0: number,
-  t1: number, a1: number,
-  t2: number, a2: number,
-): { t: number; a: number } | null {
-  const d = (t0 - t1) * (t0 - t2) * (t1 - t2);
-  if (d === 0) return null;
-  const A = (t2 * (a1 - a0) + t1 * (a0 - a2) + t0 * (a2 - a1)) / d;
-  const B = (t2 * t2 * (a0 - a1) + t1 * t1 * (a2 - a0) + t0 * t0 * (a1 - a2)) / d;
-  if (A <= 0) return null; // not a minimum
-  const tv = -B / (2 * A);
-  if (tv < t0 || tv > t2) return null; // vertex outside the window
-  const C = a0 - A * t0 * t0 - B * t0;
-  return { t: tv, a: A * tv * tv + B * tv + C };
-}

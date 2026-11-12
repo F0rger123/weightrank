@@ -1,0 +1,15 @@
+# WeightRank
+
+> Free Android fitness game. The phone camera counts only full, clean reps (push-ups, squats, dips, pull-ups, plank) using on-device MediaPipe pose tracking. Ranked 60-second duels against fair bots, Elo ranks Bronze to Diamond, adventure mode, streaks, quests and achievements. Expo SDK 58 + TypeScript.
+
+## Start here
+- [AI guide](docs/AI_GUIDE.md): what it is, what to ask, setup, use, what never to do
+- [README](README.md): features, diagrams, build steps
+- [Checklist](CHECKLIST.md): what's done and what's missing
+
+## Code
+- [Rep counter](src/domain/repCounter.ts): rep rules, smoothing, dropped-frame handling, form rejection
+- [Exercises](src/domain/exercises.ts): angle thresholds and form checks per exercise
+- [Rating](src/domain/rating.ts): Elo and ranks
+- [Bots](src/domain/bots.ts): fair opponent paces and caps
+- [Pose camera module](modules/pose-camera/android/src/main/java/expo/modules/posecamera/PoseCameraView.kt): CameraX + MediaPipe
