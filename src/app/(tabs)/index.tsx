@@ -1,10 +1,11 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EXERCISE_ORDER, EXERCISES } from "@/domain/exercises";
 import { currentStreak, dailyQuests, dayKey, questProgress, sessionsOn } from "@/domain/progress";
 import { useProfile } from "@/store/profile";
+import { useApkUpdate } from "@/store/updates";
 import { Bar, Card, EXERCISE_ICON, SectionLabel } from "@/ui/bits";
 import { C, F, R } from "@/ui/theme";
 
@@ -16,6 +17,7 @@ export default function TrainScreen() {
   const todays = sessionsOn(profile.sessions, today);
   const streak = currentStreak(profile.sessions, new Date());
   const quests = dailyQuests(today);
+  const update = useApkUpdate();
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}>
@@ -28,6 +30,16 @@ export default function TrainScreen() {
           <Text style={[F.body, F.number, { fontWeight: "800" }]}>{streak}</Text>
         </View>
       </View>
+
+      {update && (
+        <Pressable onPress={() => Linking.openURL(update.apkUrl)} style={s.update}>
+          <MaterialCommunityIcons name="download" size={20} color={C.accentInk} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: C.accentInk, fontWeight: "900" }}>Update available: {update.version}</Text>
+            {update.notes ? <Text style={{ color: C.accentInk }} numberOfLines={2}>{update.notes}</Text> : null}
+          </View>
+        </Pressable>
+      )}
 
       <SectionLabel>Pick an exercise</SectionLabel>
       <View style={s.grid}>
@@ -80,5 +92,6 @@ const s = StyleSheet.create({
   tile: { width: "48.5%", flexGrow: 1, backgroundColor: C.surface, borderRadius: R.lg, padding: 16, gap: 6, borderWidth: 1, borderColor: C.line, minHeight: 120, justifyContent: "flex-end" },
   tileWide: { width: "100%", backgroundColor: C.accent, borderColor: C.accent, minHeight: 150 },
   tileName: { fontSize: 18, fontWeight: "900", color: C.text },
+  update: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.accent, borderRadius: R.md, padding: 14 },
   questRow: { flexDirection: "row", alignItems: "center", gap: 10 },
 });
