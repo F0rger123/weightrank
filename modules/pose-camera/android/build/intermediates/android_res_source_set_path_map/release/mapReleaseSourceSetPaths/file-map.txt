@@ -1,9 +1,0 @@
-expo.modules.posecamera.pose-camera-pngs-0 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\build\generated\res\pngs\release
-expo.modules.posecamera.pose-camera-updated_navigation_xml-1 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\build\generated\updated_navigation_xml\release
-expo.modules.posecamera.pose-camera-mergeReleaseResources-2 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
-expo.modules.posecamera.pose-camera-mergeReleaseResources-3 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-expo.modules.posecamera.pose-camera-release-4 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\build\intermediates\merged_res\release\mergeReleaseResources
-expo.modules.posecamera.pose-camera-release-5 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\build\intermediates\packaged_res\release\packageReleaseResources
-expo.modules.posecamera.pose-camera-main-6 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\main\res
-expo.modules.posecamera.pose-camera-release-7 C:\Users\drumm\Projects\rep-duel\modules\pose-camera\android\src\release\res
-gradleHome-0 C:\Users\drumm\.gradle

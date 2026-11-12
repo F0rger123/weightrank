@@ -42,3 +42,6 @@ yarn-error.*
 /android
 dist-web/
 build.log
+modules/*/android/build/
+web.log
+.claude/launch.json
