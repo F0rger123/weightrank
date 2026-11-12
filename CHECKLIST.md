@@ -17,7 +17,7 @@
 - [x] README, AI guide, llms.txt, SETUP.md
 
 ## Waiting on the owner (see SETUP.md)
-- [ ] Test the APK on the Pixel: camera tracking has never run on a real phone
+- [ ] Test the APK on the Pixel: app, camera and pose model start on an emulator with no crash; real-body tracking still untested
 - [ ] Supabase project for online play: code is ready, needs URL + publishable key
 - [ ] Web hosting for the iPhone version and https invite links
 - [ ] Expo account for silent over-the-air updates
