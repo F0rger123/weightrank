@@ -1,38 +1,64 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-label="WeightRank: count every clean rep, climb the ranks">
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="420" viewBox="0 0 1280 420" role="img" aria-label="WeightRank: your camera counts every clean rep. Duel friends. Climb the ranks.">
   <defs>
-    <linearGradient id="fade" x1="0" x2="1">
-      <stop offset="0" stop-color="#0B0D10"/>
-      <stop offset="1" stop-color="#14171C"/>
+    <linearGradient id="lime" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C8FF3D"/>
+      <stop offset="1" stop-color="#8BEA1C"/>
     </linearGradient>
+    <radialGradient id="glow" cx="0.78" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#C8FF3D" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#C8FF3D" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M32 0H0V32" fill="none" stroke="#ffffff" stroke-opacity="0.04"/>
+    </pattern>
+    <clipPath id="screen"><rect x="902" y="52" width="196" height="316" rx="26"/></clipPath>
     <style>
       .t { font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif; }
-      .arm { transform-origin: 845px 205px; animation: push 1.6s ease-in-out infinite; }
-      .count { animation: blink 1.6s steps(1) infinite; }
-      .gauge { transform-origin: 1080px 260px; animation: fill 1.6s ease-in-out infinite; }
-      @keyframes push { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-38deg); } }
-      @keyframes fill { 0%,100% { transform: scaleY(0.08); } 50% { transform: scaleY(1); } }
-      @keyframes blink { 0%,49% { fill: #F2F4F7; } 50%,100% { fill: #C8FF3D; } }
-      @media (prefers-reduced-motion: reduce) { .arm, .gauge, .count { animation: none; } }
+      .pop { transform-origin: 1000px 268px; animation: pop 1.6s ease-out infinite; }
+      .fill { transform-origin: 1080px 300px; animation: fill 1.6s ease-in-out infinite; }
+      .arm { transform-origin: 958px 196px; animation: arm 1.6s ease-in-out infinite; }
+      .ring { transform-origin: 1000px 210px; animation: ring 1.6s ease-out infinite; }
+      @keyframes pop { 0%,45% { transform: scale(1); } 52% { transform: scale(1.18); } 70%,100% { transform: scale(1); } }
+      @keyframes fill { 0%,100% { transform: scaleY(0.1); } 50% { transform: scaleY(1); } }
+      @keyframes arm { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-40deg); } }
+      @keyframes ring { 0% { opacity: 0.7; transform: scale(0.6); } 100% { opacity: 0; transform: scale(1.6); } }
+      @media (prefers-reduced-motion: reduce) { .pop, .fill, .arm, .ring { animation: none; } }
     </style>
   </defs>
-  <rect width="1200" height="320" rx="28" fill="url(#fade)"/>
-  <g transform="translate(70 92) scale(0.17)">
-    <polygon points="0,281 287,-6 574,281 574,407 287,120 0,407" fill="#C8FF3D"/>
-    <polygon points="0,511 287,224 574,511 574,637 287,350 0,637" fill="#6E8C21"/>
+  <rect width="1280" height="420" rx="32" fill="#07080A"/>
+  <rect width="1280" height="420" rx="32" fill="url(#grid)"/>
+  <rect width="1280" height="420" rx="32" fill="url(#glow)"/>
+
+  <!-- mark + wordmark -->
+  <g transform="translate(72 74) scale(0.9)">
+    <path fill="url(#lime)" fill-rule="evenodd" d="M50 5.9 L88 20 L88 51.8 L72.8 76.5 L50 94.1 L27.2 76.5 L12 51.8 L12 20 Z M28.7 43.9 L50 22.6 L71.3 43.9 L71.3 55.3 L50 34 L28.7 55.3 Z M28.7 65.2 L50 43.9 L71.3 65.2 L71.3 76.6 L50 55.3 L28.7 76.6 Z"/>
   </g>
-  <text x="190" y="150" class="t" font-size="72" font-weight="900" fill="#F2F4F7" letter-spacing="-2">Weight<tspan fill="#C8FF3D">Rank</tspan></text>
-  <text x="192" y="198" class="t" font-size="24" font-weight="600" fill="#8A93A0">Your phone camera counts every clean rep. Duel. Climb the ranks.</text>
-  <text x="192" y="246" class="t" font-size="16" font-weight="800" fill="#5A626E" letter-spacing="3">FREE · ON-DEVICE · NO PAYWALL</text>
-  <!-- stick figure doing push-ups -->
-  <g stroke="#C8FF3D" stroke-width="9" stroke-linecap="round" fill="none">
-    <line x1="845" y1="205" x2="990" y2="222"/>
-    <line x1="990" y1="222" x2="1040" y2="262"/>
-    <g class="arm"><line x1="845" y1="205" x2="845" y2="262"/></g>
+  <text x="170" y="140" class="t" font-size="76" font-weight="900" font-style="italic" fill="#F4F6F8" letter-spacing="-2">WEIGHT<tspan fill="#C8FF3D">RANK</tspan></text>
+  <text x="74" y="214" class="t" font-size="30" font-weight="800" fill="#F4F6F8">Your camera counts every clean rep.</text>
+  <text x="74" y="254" class="t" font-size="30" font-weight="800" fill="#8C95A3">Duel friends. Climb Bronze to Diamond.</text>
+  <g class="t" font-size="15" font-weight="900" letter-spacing="2">
+    <rect x="74" y="300" width="96" height="38" rx="19" fill="#C8FF3D"/><text x="122" y="324" text-anchor="middle" fill="#07080A">FREE</text>
+    <rect x="182" y="300" width="168" height="38" rx="19" fill="#121419" stroke="#252A33"/><text x="266" y="324" text-anchor="middle" fill="#F4F6F8">ON-DEVICE AI</text>
+    <rect x="362" y="300" width="176" height="38" rx="19" fill="#121419" stroke="#252A33"/><text x="450" y="324" text-anchor="middle" fill="#F4F6F8">ANDROID · IPHONE</text>
   </g>
-  <circle cx="820" cy="190" r="18" fill="#0B0D10" stroke="#C8FF3D" stroke-width="8"/>
-  <line x1="780" y1="266" x2="1060" y2="266" stroke="#272C35" stroke-width="4"/>
-  <rect x="1072" y="120" width="16" height="140" rx="8" fill="#1C2027"/>
-  <rect class="gauge" x="1072" y="120" width="16" height="140" rx="8" fill="#C8FF3D"/>
-  <rect x="1064" y="128" width="32" height="4" rx="2" fill="#C8FF3D"/>
-  <text x="900" y="120" class="t count" font-size="64" font-weight="900" text-anchor="middle">12</text>
+
+  <!-- phone -->
+  <rect x="890" y="40" width="220" height="340" rx="36" fill="#121419" stroke="#252A33" stroke-width="2"/>
+  <g clip-path="url(#screen)">
+    <rect x="902" y="52" width="196" height="316" fill="#000"/>
+    <circle class="ring" cx="1000" cy="210" r="60" fill="none" stroke="#C8FF3D" stroke-width="3"/>
+    <g stroke="#C8FF3D" stroke-width="7" stroke-linecap="round" fill="none">
+      <line x1="958" y1="196" x2="1050" y2="206"/>
+      <line x1="1050" y1="206" x2="1086" y2="232"/>
+      <g class="arm"><line x1="958" y1="196" x2="958" y2="236"/></g>
+    </g>
+    <circle cx="940" cy="186" r="12" fill="#000" stroke="#C8FF3D" stroke-width="6"/>
+    <rect x="1074" y="96" width="12" height="204" rx="6" fill="#1A1D24"/>
+    <rect class="fill" x="1074" y="96" width="12" height="204" rx="6" fill="#C8FF3D"/>
+    <text x="1000" y="300" class="t pop" font-size="72" font-weight="900" font-style="italic" text-anchor="middle" fill="#F4F6F8">31</text>
+    <rect x="938" y="320" width="124" height="30" rx="15" fill="#C8FF3D"/>
+    <text x="1000" y="340" class="t" font-size="13" font-weight="900" text-anchor="middle" fill="#07080A" letter-spacing="1">PERFECT</text>
+    <text x="918" y="84" class="t" font-size="12" font-weight="800" fill="#8C95A3">YOU</text>
+    <text x="1082" y="84" class="t" font-size="12" font-weight="800" fill="#8C95A3" text-anchor="end">BOT · 1036</text>
+  </g>
 </svg>

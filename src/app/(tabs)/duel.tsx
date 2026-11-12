@@ -1,13 +1,14 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { RANK_CAP } from "@/domain/bots";
 import { EXERCISES, ExerciseId } from "@/domain/exercises";
 import { rankFor, rankProgress, RANKS } from "@/domain/rating";
+import { onlineConfigured } from "@/lib/online";
 import { useProfile } from "@/store/profile";
-import { Bar, Button, Card, EXERCISE_ICON, RankBadge, SectionLabel } from "@/ui/bits";
+import { Bar, Button, Card, Chip, EXERCISE_ICON, RankBadge, SectionLabel } from "@/ui/bits";
+import { Appear } from "@/ui/motion";
 import { C, F, R } from "@/ui/theme";
 
 export const DUEL_EXERCISES: ExerciseId[] = ["pushup", "squat", "dip", "pullup"];
@@ -26,9 +27,10 @@ export default function DuelTab() {
       <Text style={F.h1}>Ranked duel</Text>
       <Text style={F.small}>60 seconds. Most clean reps wins. Only full-depth reps count, for you and for them.</Text>
 
-      <Card style={{ gap: 14 }}>
+      <Appear i={1}>
+      <Card style={{ gap: 14 }} glow={rank.color}>
         <View style={s.rankRow}>
-          <RankBadge rank={rank} size={64} />
+          <RankBadge rank={rank} size={64} pulse />
           <View style={{ flex: 1, gap: 2 }}>
             <Text style={[F.h2, { color: rank.color }]}>{rank.name}</Text>
             <Text style={[F.display, F.number, { fontSize: 36 }]}>{profile.rating}</Text>
@@ -41,18 +43,23 @@ export default function DuelTab() {
         <Bar value={rankProgress(profile.rating)} color={rank.color} />
         <Text style={F.small}>{next ? `${next.min - profile.rating} to ${next.name}` : "Top rank. Defend it."}</Text>
       </Card>
+      </Appear>
 
       <SectionLabel>Exercise</SectionLabel>
       <View style={s.pills}>
         {DUEL_EXERCISES.map((id) => (
-          <Pressable key={id} onPress={() => setExercise(id)} style={[s.pill, exercise === id && s.pillOn]}>
-            <MaterialCommunityIcons name={EXERCISE_ICON[id]} size={18} color={exercise === id ? C.accentInk : C.text} />
-            <Text style={[s.pillText, exercise === id && { color: C.accentInk }]}>{EXERCISES[id].name}</Text>
-          </Pressable>
+          <Chip key={id} label={EXERCISES[id].name} icon={EXERCISE_ICON[id]} on={exercise === id} onPress={() => setExercise(id)} />
         ))}
       </View>
 
-      <Button label="Find opponent" icon="sword-cross" onPress={() => router.push({ pathname: "/duel/[exercise]", params: { exercise } })} />
+      <Appear i={2} style={{ gap: 10 }}>
+        <Button label="Find opponent" icon="sword-cross" onPress={() => router.push({ pathname: "/duel/[exercise]", params: { exercise } })} />
+        <Button label="Challenge a friend" icon="account-multiple-plus" kind="ghost" onPress={() => router.push("/challenge")} />
+        <View style={s.online}>
+          <View style={[s.dot, { backgroundColor: onlineConfigured ? C.good : C.faint }]} />
+          <Text style={F.small}>{onlineConfigured ? "Online: real players first, a fair bot if no one is around" : "Offline mode: fair bots near your rating"}</Text>
+        </View>
+      </Appear>
 
       <SectionLabel>Ranks</SectionLabel>
       <Card style={{ gap: 10 }}>
@@ -65,7 +72,7 @@ export default function DuelTab() {
           </View>
         ))}
       </Card>
-      <Text style={[F.small, { textAlign: "center" }]}>Opponents are bots near your rating with honest, capped paces. Real-player duels come later.</Text>
+      <Text style={[F.small, { textAlign: "center" }]}>Opponents are bots near your rating with honest, capped paces. </Text>
     </ScrollView>
   );
 }
@@ -79,4 +86,5 @@ const s = StyleSheet.create({
   pillText: { color: C.text, fontWeight: "800" },
   rankLine: { flexDirection: "row", alignItems: "center", gap: 10 },
   dot: { width: 10, height: 10, borderRadius: 5 },
+  online: { flexDirection: "row", alignItems: "center", gap: 8, justifyContent: "center" },
 });

@@ -18,7 +18,15 @@ export type Profile = {
   questsPaid: string[];
   achievements: string[];
   settings: { facing: "front" | "back"; voice: boolean };
+  /** Random id for online play; never tied to an account. */
+  playerId: string;
+  /** Name shown to friends and online opponents. */
+  name: string;
 };
+
+function randomId(): string {
+  return Array.from({ length: 12 }, () => "abcdefghijkmnpqrstuvwxyz23456789"[Math.floor(Math.random() * 32)]).join("");
+}
 
 const KEY = "weightrank.profile.v1";
 /** Keep the history bounded so storage stays small. */
@@ -35,6 +43,8 @@ export const NEW_PROFILE: Profile = {
   questsPaid: [],
   achievements: [],
   settings: { facing: "front", voice: true },
+  playerId: "",
+  name: "",
 };
 
 export type SaveResult = {
@@ -51,6 +61,7 @@ type Ctx = {
   /** Record a finished session; pays out XP, quests and achievements. */
   saveSession(s: Session, duel?: { opponentRating: number }, extra?: { adventureCleared?: boolean }): SaveResult;
   setSettings(patch: Partial<Profile["settings"]>): void;
+  setName(name: string): void;
   resetAll(): void;
 };
 
@@ -65,7 +76,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     AsyncStorage.getItem(KEY)
       .then((raw) => {
-        if (raw) setProfile({ ...NEW_PROFILE, ...(JSON.parse(raw) as Profile) });
+        const saved = raw ? ({ ...NEW_PROFILE, ...(JSON.parse(raw) as Profile) } as Profile) : { ...NEW_PROFILE };
+        if (!saved.playerId) saved.playerId = randomId();
+        if (!saved.name) saved.name = `Athlete ${saved.playerId.slice(0, 4).toUpperCase()}`;
+        ref.current = saved;
+        setProfile(saved);
+        AsyncStorage.setItem(KEY, JSON.stringify(saved)).catch(() => {});
       })
       .catch(() => {})
       .finally(() => setReady(true));
@@ -128,9 +144,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     commit({ ...p, settings: { ...p.settings, ...patch } });
   }, [commit]);
 
-  const resetAll = useCallback(() => commit(NEW_PROFILE), [commit]);
+  const setName = useCallback((name: string) => {
+    commit({ ...ref.current, name: name.trim().slice(0, 16) || ref.current.name });
+  }, [commit]);
 
-  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, resetAll }), [profile, ready, saveSession, setSettings, resetAll]);
+  const resetAll = useCallback(() => {
+    const p = ref.current;
+    commit({ ...NEW_PROFILE, playerId: p.playerId, name: p.name });
+  }, [commit]);
+
+  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, resetAll }), [profile, ready, saveSession, setSettings, setName, resetAll]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

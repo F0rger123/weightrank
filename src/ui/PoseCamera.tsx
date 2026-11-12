@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LayoutChangeEvent, Pressable, StyleSheet, Text, View } from "react-native";
+import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import {
   getCameraPermission, PoseCameraView, poseCameraAvailable, requestCameraPermission,
@@ -7,6 +7,10 @@ import {
 import { Pose } from "@/domain/pose";
 import { cycle, pushupPose } from "@/domain/sim";
 import { C, F, R } from "./theme";
+import { WebPoseCamera } from "./WebPoseCamera";
+
+/** Web dev only: add ?sim to the URL to use the synthetic body instead of the camera. */
+const useSim = Platform.OS === "web" && __DEV__ && typeof location !== "undefined" && location.search.includes("sim");
 
 /** Bones to draw (MediaPipe indices). Face points skipped: they add noise, not information. */
 const BONES: [number, number][] = [
@@ -42,7 +46,18 @@ export function PoseCamera({ facing, active, pose, tint, onFrame }: Props) {
   const onLayout = (e: LayoutChangeEvent) => setSize({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height });
 
   let body: React.ReactNode;
-  if (!poseCameraAvailable || !PoseCameraView) {
+  if (useSim) {
+    body = <Simulator active={active} onFrame={onFrame} />;
+  } else if (Platform.OS === "web") {
+    body = (
+      <WebPoseCamera
+        facing={facing}
+        active={active}
+        onFrame={onFrame}
+        onFrameSize={(w, h) => (w !== frame.w || h !== frame.h) && w && h && setFrame({ w, h })}
+      />
+    );
+  } else if (!poseCameraAvailable || !PoseCameraView) {
     body = __DEV__ ? <Simulator active={active} onFrame={onFrame} /> : <Notice text="Camera tracking needs the WeightRank APK." />;
   } else if (perm === "denied") {
     body = (

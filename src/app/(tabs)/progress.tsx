@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { EXERCISE_ORDER, EXERCISES } from "@/domain/exercises";
@@ -85,6 +86,16 @@ export default function ProgressTab() {
 
       <SectionLabel>Settings</SectionLabel>
       <Card style={{ gap: 14 }}>
+        <Pressable onPress={() => router.push("/install")} style={s.row}>
+          <MaterialCommunityIcons name="cellphone-arrow-down" size={20} color={C.accent} />
+          <Text style={[F.body, { flex: 1 }]}>Get the app / send it to a friend</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={C.faint} />
+        </Pressable>
+        <Pressable onPress={() => router.push("/challenge")} style={s.row}>
+          <MaterialCommunityIcons name="account-edit-outline" size={20} color={C.accent} />
+          <Text style={[F.body, { flex: 1 }]}>Name: {profile.name}</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={C.faint} />
+        </Pressable>
         <View style={s.row}>
           <Text style={[F.body, { flex: 1 }]}>Count reps out loud</Text>
           <Switch value={profile.settings.voice} onValueChange={(v) => setSettings({ voice: v })} trackColor={{ true: C.accent, false: C.surface2 }} />

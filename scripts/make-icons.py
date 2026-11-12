@@ -1,50 +1,83 @@
-"""Draw WeightRank's app icons: two stacked lime chevrons (rank up) on near-black.
+"""Draw WeightRank's app icons: a lime rank shield with a cut-out double chevron.
 
-Run: python scripts/make-icons.py  (needs Pillow)
+Drawn at 4x and downsampled for clean edges. Run: python scripts/make-icons.py (needs Pillow)
 """
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
-BG = (11, 13, 16, 255)
+BG = (7, 8, 10, 255)
 LIME = (200, 255, 61, 255)
+LIME2 = (139, 234, 28, 255)
 OUT = Path(__file__).resolve().parent.parent / "assets"
+PUB = Path(__file__).resolve().parent.parent / "public"
 S = 1024
+K = 4  # supersampling
 
 
-def chevrons(draw: ImageDraw.ImageDraw, size: int, color, scale: float):
-    """Two upward chevrons, centered, occupying `scale` of the canvas."""
-    w = size * scale
-    cx, cy = size / 2, size / 2 - w * 0.11  # visual centre of the pair
-    thick = w * 0.22
-    for i, dy in enumerate((-w * 0.2, w * 0.2)):
-        top = cy + dy - w * 0.25
-        pts = [
-            (cx - w / 2, top + w * 0.5),
-            (cx, top),
-            (cx + w / 2, top + w * 0.5),
-            (cx + w / 2, top + w * 0.5 + thick),
-            (cx, top + thick),
-            (cx - w / 2, top + w * 0.5 + thick),
-        ]
-        # Lower chevron is a darker shade (solid, so it reads on any background).
-        c = color if i == 0 else tuple([int(v * 0.55) for v in color[:3]] + [color[3]])
-        draw.polygon(pts, fill=c)
+def shield_points(cx, cy, w):
+    h = w * 1.16
+    top = cy - h / 2
+    return [
+        (cx, top),
+        (cx + w / 2, top + h * 0.16),
+        (cx + w / 2, top + h * 0.52),
+        (cx + w * 0.30, top + h * 0.80),
+        (cx, top + h),
+        (cx - w * 0.30, top + h * 0.80),
+        (cx - w / 2, top + h * 0.52),
+        (cx - w / 2, top + h * 0.16),
+    ]
 
 
-def layer(scale: float, color, bg=None) -> Image.Image:
-    img = Image.new("RGBA", (S, S), bg or (0, 0, 0, 0))
-    chevrons(ImageDraw.Draw(img), S, color, scale)
-    return img
+def chevron(cx, top, w, t):
+    return [(cx - w / 2, top + w * 0.5), (cx, top), (cx + w / 2, top + w * 0.5),
+            (cx + w / 2, top + w * 0.5 + t), (cx, top + t), (cx - w / 2, top + w * 0.5 + t)]
+
+
+def gradient(size, c1, c2):
+    g = Image.new("RGBA", (size, size))
+    d = ImageDraw.Draw(g)
+    for y in range(size):
+        f = y / size
+        d.line([(0, y), (size, y)], fill=tuple(int(c1[i] * (1 - f) + c2[i] * f) for i in range(4)))
+    return g
+
+
+def mark(scale: float, color=None, bg=None, glow=False) -> Image.Image:
+    n = S * K
+    img = Image.new("RGBA", (n, n), bg or (0, 0, 0, 0))
+    w = n * scale
+    cx, cy = n / 2, n / 2
+    full = Image.new("L", (n, n), 0)
+    ImageDraw.Draw(full).polygon(shield_points(cx, cy, w), fill=255)
+    cut = Image.new("L", (n, n), 0)
+    cd = ImageDraw.Draw(cut)
+    cw, t = w * 0.56, w * 0.15
+    cd.polygon(chevron(cx, cy - w * 0.36, cw, t), fill=255)
+    cd.polygon(chevron(cx, cy - w * 0.08, cw, t), fill=255)
+    mask = Image.composite(Image.new("L", (n, n), 0), full, cut)
+    if glow:
+        halo = Image.new("RGBA", (n, n), (0, 0, 0, 0))
+        halo.paste((*LIME[:3], 110), (0, 0), full.filter(ImageFilter.GaussianBlur(n * 0.04)))
+        img = Image.alpha_composite(img, halo)
+        img.paste(bg or BG, (0, 0), cut)  # keep the chevrons crisp black, not glowing
+    fill = gradient(n, LIME, LIME2) if color is None else Image.new("RGBA", (n, n), color)
+    img.paste(fill, (0, 0), mask)
+    return img.resize((S, S), Image.LANCZOS)
 
 
 def main():
     OUT.mkdir(exist_ok=True)
-    layer(0.56, LIME, BG).save(OUT / "icon.png")
-    layer(0.42, LIME).save(OUT / "android-icon-foreground.png")  # inside the adaptive safe zone
+    PUB.mkdir(exist_ok=True)
+    icon = mark(0.58, bg=BG, glow=True)
+    icon.save(OUT / "icon.png")
+    mark(0.46).save(OUT / "android-icon-foreground.png")  # inside the adaptive-icon safe zone
     Image.new("RGBA", (S, S), BG).save(OUT / "android-icon-background.png")
-    layer(0.42, (255, 255, 255, 255)).save(OUT / "android-icon-monochrome.png")
-    layer(0.5, LIME).save(OUT / "splash-icon.png")
-    layer(0.6, LIME, BG).resize((48, 48), Image.LANCZOS).save(OUT / "favicon.png")
+    mark(0.46, color=(255, 255, 255, 255)).save(OUT / "android-icon-monochrome.png")
+    mark(0.5).save(OUT / "splash-icon.png")
+    icon.convert("RGB").resize((48, 48), Image.LANCZOS).save(OUT / "favicon.png")
+    for size in (180, 192, 512):
+        icon.convert("RGB").resize((size, size), Image.LANCZOS).save(PUB / f"icon-{size}.png")
 
 
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
-import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { creatureFor, repDamage } from "@/domain/adventure";
 import { EXERCISE_ORDER, EXERCISES, ExerciseId } from "@/domain/exercises";
 import { levelFor } from "@/domain/progress";
 import { useProfile } from "@/store/profile";
-import { Bar, Button, Card, EXERCISE_ICON, SectionLabel } from "@/ui/bits";
+import { Bar, Button, Card, Chip, EXERCISE_ICON, SectionLabel } from "@/ui/bits";
+import { Appear, Pulse } from "@/ui/motion";
 import { C, F, R } from "@/ui/theme";
 
 export default function AdventureTab() {
@@ -31,9 +31,9 @@ export default function AdventureTab() {
         <Bar value={lvl.into / lvl.needed} />
       </Card>
 
-      <Card style={[{ alignItems: "center", gap: 8 }, foe.boss && { borderColor: C.bad }]}>
+      <Card style={{ alignItems: "center", gap: 8 }} glow={foe.boss ? C.bad : C.violet}>
         <Text style={F.label}>Stage {foe.stage}{foe.boss ? " · Boss" : ""}</Text>
-        <Text style={{ fontSize: 84 }}>{foe.emoji}</Text>
+        <Pulse min={0.92} ms={1600}><Text style={{ fontSize: 92 }}>{foe.emoji}</Text></Pulse>
         <Text style={F.h2}>{foe.name}</Text>
         <Text style={[F.small, F.number]}>{foe.hp} HP · {foe.timeLimit}s</Text>
       </Card>
@@ -41,10 +41,7 @@ export default function AdventureTab() {
       <SectionLabel>Fight with</SectionLabel>
       <View style={s.pills}>
         {EXERCISE_ORDER.map((id) => (
-          <Pressable key={id} onPress={() => setExercise(id)} style={[s.pill, exercise === id && s.pillOn]}>
-            <MaterialCommunityIcons name={EXERCISE_ICON[id]} size={18} color={exercise === id ? C.accentInk : C.text} />
-            <Text style={[s.pillText, exercise === id && { color: C.accentInk }]}>{EXERCISES[id].name}</Text>
-          </Pressable>
+          <Chip key={id} label={EXERCISES[id].name} icon={EXERCISE_ICON[id]} on={exercise === id} onPress={() => setExercise(id)} />
         ))}
       </View>
       <Text style={F.small}>{hit ? `${hit} damage per rep` : "Damage every second you hold good form"}</Text>

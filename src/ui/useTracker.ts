@@ -1,9 +1,9 @@
-import * as Haptics from "expo-haptics";
 import * as Speech from "expo-speech";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { EXERCISES, ExerciseId, HoldExercise, REJECT_TEXT, RepExercise } from "@/domain/exercises";
 import { Pose } from "@/domain/pose";
 import { CounterState, HoldState, HoldTimer, RepCounter, RepEvent } from "@/domain/repCounter";
+import { haptic } from "./haptics";
 
 export type TrackerView = {
   kind: "reps" | "hold";
@@ -59,12 +59,15 @@ export function useTracker(
     if ("lastEvent" in s && s.lastEvent) {
       flash.current = { e: s.lastEvent, until: t + 1500 };
       if (s.lastEvent.type === "rep") {
-        Haptics.impactAsync(s.lastEvent.quality === "perfect" ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
+        haptic.rep(s.lastEvent.quality === "perfect");
         if (o.voice) {
           Speech.stop();
           Speech.speak(String(s.reps), { rate: 1.15 });
         }
-      } else if (o.voice) {
+      } else {
+        haptic.reject();
+      }
+      if (s.lastEvent.type === "reject" && o.voice) {
         Speech.stop();
         Speech.speak(REJECT_TEXT[s.lastEvent.reason].split(":")[0], { rate: 1.1 });
       }
@@ -75,6 +78,7 @@ export function useTracker(
       if (whole > lastWholeSecond.current) {
         lastWholeSecond.current = whole;
         o.onHoldSecond?.(whole);
+        if (whole % 5 === 0) haptic.tick();
         if (o.voice && whole % 10 === 0) Speech.speak(`${whole}`, { rate: 1.1 });
       }
     }
