@@ -99,3 +99,22 @@ export function bestSide(p: Pose, joints: (s: SideJoints) => number[]): Side {
   const r = visibilityScore(p, joints(SIDE.right));
   return l >= r ? "left" : "right";
 }
+
+/**
+ * Legs on the floor, side-on, often get low visibility scores even when they're
+ * clearly in the picture. Accept a lower score as long as the point is inside the frame.
+ */
+export const LEG_VISIBILITY = 0.2;
+
+export function legSeen(p: Pose, i: number): boolean {
+  const l = p[i];
+  if (!l) return false;
+  const inFrame = l.x > -0.03 && l.x < 1.03 && l.y > -0.03 && l.y < 1.03;
+  return inFrame && (l.visibility ?? 1) >= LEG_VISIBILITY;
+}
+
+/** Pick the leg the camera sees best, independently of which arm it sees best. */
+export function bestLeg(p: Pose): SideJoints {
+  const score = (s: SideJoints) => (p[s.knee]?.visibility ?? 0) + (p[s.ankle]?.visibility ?? 0) + (p[s.hip]?.visibility ?? 0) * 0.5;
+  return score(SIDE.left) >= score(SIDE.right) ? SIDE.left : SIDE.right;
+}

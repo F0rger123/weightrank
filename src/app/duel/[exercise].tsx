@@ -33,7 +33,7 @@ type Opponent = {
 };
 
 /** How long ranked waits for a real player before offering a bot. */
-const HUMAN_WAIT_S = 15;
+const HUMAN_WAIT_S = 10;
 
 /** One 60-second duel: ranked (real player or fair bot), a friend's challenge, or a live friend room. */
 export default function DuelRun() {

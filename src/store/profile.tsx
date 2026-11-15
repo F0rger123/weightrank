@@ -3,6 +3,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import {
   ACHIEVEMENTS, dailyQuests, dayKey, questProgress, Session, sessionsOn, xpFor,
 } from "@/domain/progress";
+import type { Body } from "@/domain/placement";
 import { setHapticsEnabled } from "@/ui/haptics";
 import { applyDelta, rankFor, RankId, RANKS, ratingDelta, START_RATING } from "@/domain/rating";
 
@@ -23,7 +24,18 @@ export type Profile = {
   playerId: string;
   /** Name shown to friends and online opponents. */
   name: string;
+  /** Finished the first-launch setup (body details + placement). */
+  onboarded?: boolean;
+  body?: Body;
+  /** Push-ups in the placement test, null if skipped. */
+  placementReps?: number | null;
+  /** Best daily streak seen, for the streak celebration. */
+  lastStreakCelebrated?: number;
 };
+
+function rankForId(r: number): RankId {
+  return rankFor(r).id;
+}
 
 function randomId(): string {
   return Array.from({ length: 12 }, () => "abcdefghijkmnpqrstuvwxyz23456789"[Math.floor(Math.random() * 32)]).join("");
@@ -63,6 +75,9 @@ type Ctx = {
   saveSession(s: Session, duel?: { opponentRating: number }, extra?: { adventureCleared?: boolean }): SaveResult;
   setSettings(patch: Partial<Profile["settings"]>): void;
   setName(name: string): void;
+  /** First-launch setup: body details and placement result set the starting rating. */
+  completeOnboarding(body: Body, rating: number, placementReps: number | null, name?: string): void;
+  patch(p: Partial<Profile>): void;
   resetAll(): void;
 };
 
@@ -151,12 +166,22 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     commit({ ...ref.current, name: name.trim().slice(0, 16) || ref.current.name });
   }, [commit]);
 
+  const completeOnboarding = useCallback((body: Body, rating: number, placementReps: number | null, name?: string) => {
+    const p = ref.current;
+    // Someone who has already played keeps their earned rating unless they retook the test.
+    const keep = p.games > 0 && placementReps === null;
+    const r = keep ? p.rating : rating;
+    commit({ ...p, body, placementReps, onboarded: true, rating: r, name: name?.trim() || p.name, peakRank: keep ? p.peakRank : rankForId(r) });
+  }, [commit]);
+
+  const patch = useCallback((x: Partial<Profile>) => commit({ ...ref.current, ...x }), [commit]);
+
   const resetAll = useCallback(() => {
     const p = ref.current;
     commit({ ...NEW_PROFILE, playerId: p.playerId, name: p.name });
   }, [commit]);
 
-  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, resetAll }), [profile, ready, saveSession, setSettings, setName, resetAll]);
+  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, resetAll }), [profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, resetAll]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

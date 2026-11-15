@@ -2,7 +2,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router, usePathname } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import Animated, { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { haptic } from "./haptics";
 import { C } from "./theme";
@@ -35,7 +35,7 @@ export function IslandTabBar() {
   const tabW = w / TABS.length;
 
   useEffect(() => {
-    if (tabW) x.value = withSpring(active * tabW, { damping: 18, stiffness: 220 });
+    if (tabW) x.value = active * tabW; // instant, no slide
   }, [active, tabW]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const pill = useAnimatedStyle(() => ({ transform: [{ translateX: x.value }] }));

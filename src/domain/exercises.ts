@@ -1,4 +1,4 @@
-import { allVisible, angle, bestSide, LM, Pose, tiltFromHorizontal, visible } from "./pose";
+import { allVisible, angle, bestLeg, bestSide, legSeen, LM, Pose, tiltFromHorizontal, visible } from "./pose";
 
 export type ExerciseId = "pushup" | "squat" | "dip" | "pullup" | "plank";
 
@@ -90,12 +90,7 @@ const PUSHUP: RepExercise = {
     const issues: FormIssue[] = [];
     const elbow = angle(p[s.shoulder], p[s.elbow], p[s.wrist]);
     if (tiltFromHorizontal(p[s.shoulder], p[s.hip]) > 50) issues.push("not_in_plank");
-    if (!visible(p, s.knee) || !visible(p, s.ankle)) {
-      issues.push("legs_hidden");
-    } else {
-      if (angle(p[s.hip], p[s.knee], p[s.ankle]) < 150) issues.push("knees_down");
-      else if (angle(p[s.shoulder], p[s.hip], p[s.ankle]) < 155) issues.push("hips_sagging");
-    }
+    issues.push(...legIssues(p, s.shoulder, 150, 155));
     return { value: elbow, issues };
   },
 };
@@ -183,14 +178,27 @@ const PLANK: HoldExercise = {
     const side = bestSide(p, (s) => [s.shoulder, s.hip, s.knee, s.ankle]);
     const s = side === "left" ? SIDE_L : SIDE_R;
     if (!allVisible(p, [s.shoulder, s.hip])) return null;
-    if (!visible(p, s.knee) || !visible(p, s.ankle)) return ["legs_hidden"];
     const issues: FormIssue[] = [];
     if (tiltFromHorizontal(p[s.shoulder], p[s.hip]) > 40) issues.push("not_in_plank");
-    if (angle(p[s.hip], p[s.knee], p[s.ankle]) < 150) issues.push("knees_down");
-    else if (angle(p[s.shoulder], p[s.hip], p[s.ankle]) < 160) issues.push("hips_sagging");
+    issues.push(...legIssues(p, s.shoulder, 150, 160));
     return issues;
   },
 };
+
+/**
+ * Knee and hip checks for floor exercises, using whichever leg is clearest.
+ * Only says "legs hidden" when neither knee can be found at all; if the knee
+ * shows but the ankle doesn't, it skips the check rather than nagging.
+ */
+function legIssues(p: Pose, shoulder: number, minKnee: number, minLine: number): FormIssue[] {
+  const leg = bestLeg(p);
+  if (!legSeen(p, leg.knee)) return ["legs_hidden"];
+  if (!legSeen(p, leg.ankle) || !legSeen(p, leg.hip)) return [];
+  if (angle(p[leg.hip], p[leg.knee], p[leg.ankle]) < minKnee) return ["knees_down"];
+  const sh = visible(p, leg.shoulder) ? leg.shoulder : shoulder;
+  if (angle(p[sh], p[leg.hip], p[leg.ankle]) < minLine) return ["hips_sagging"];
+  return [];
+}
 
 const SIDE_L = {
   shoulder: LM.leftShoulder, elbow: LM.leftElbow, wrist: LM.leftWrist,

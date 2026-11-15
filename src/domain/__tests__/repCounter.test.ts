@@ -114,3 +114,26 @@ describe("RepCounter push-ups", () => {
     expect(last.rom).toBeGreaterThan(0.85);
   });
 });
+
+describe("leg detection", () => {
+  it("doesn't nag about legs that are in frame but low-confidence", () => {
+    const p = pushupPose({ elbow: 160 });
+    for (const i of [LM.leftKnee, LM.leftAnkle]) p[i] = { ...p[i], visibility: 0.3 };
+    expect(PUSHUP.measure(p)?.issues).not.toContain("legs_hidden");
+  });
+  it("uses the clearer leg even if the arm side is the other one", () => {
+    const p = pushupPose({ elbow: 160 });
+    // Right leg clearly seen, left leg hidden.
+    p[LM.rightHip] = { ...p[LM.leftHip], visibility: 0.9 };
+    for (const [l, r] of [[LM.leftKnee, LM.rightKnee], [LM.leftAnkle, LM.rightAnkle]] as const) {
+      p[r] = { ...p[l], visibility: 0.9 };
+      p[l] = { ...p[l], visibility: 0.05 };
+    }
+    expect(PUSHUP.measure(p)?.issues).toEqual([]);
+  });
+  it("still says so when no knee is visible at all", () => {
+    const p = pushupPose({ elbow: 160 });
+    for (const i of [LM.leftKnee, LM.leftAnkle, LM.rightKnee, LM.rightAnkle]) p[i] = { ...p[i], visibility: 0.05 };
+    expect(PUSHUP.measure(p)?.issues).toContain("legs_hidden");
+  });
+});

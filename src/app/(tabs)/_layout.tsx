@@ -12,7 +12,7 @@ export default function TabsLayout() {
           sceneStyle: { backgroundColor: C.bg },
           // Our own floating island replaces the stock bar.
           tabBarStyle: { display: "none" },
-          animation: "shift",
+          animation: "none",
         }}
       >
         <Tabs.Screen name="index" options={{ title: "Train" }} />
