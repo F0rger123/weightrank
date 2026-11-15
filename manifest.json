@@ -1,0 +1,14 @@
+{
+  "name": "WeightRank",
+  "short_name": "WeightRank",
+  "description": "Your camera counts every clean rep. Duel friends, climb the ranks. Free.",
+  "start_url": "/weightrank/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07080A",
+  "theme_color": "#07080A",
+  "icons": [
+    { "src": "/weightrank/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/weightrank/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
