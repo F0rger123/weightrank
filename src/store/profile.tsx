@@ -33,6 +33,10 @@ export type Profile = {
   lastStreakCelebrated?: number;
   /** Adventure: level id -> best stars. */
   campaign?: Record<string, number>;
+  /** Last local change (ms), for cloud sync. */
+  updatedAt?: number;
+  /** Account this profile was last synced with. */
+  syncedUid?: string;
 };
 
 function rankForId(r: number): RankId {
@@ -80,6 +84,8 @@ type Ctx = {
   /** First-launch setup: body details and placement result set the starting rating. */
   completeOnboarding(body: Body, rating: number, placementReps: number | null, name?: string): void;
   patch(p: Partial<Profile>): void;
+  /** Replace the whole profile with one from the cloud (keeps its timestamp). */
+  replace(p: Profile): void;
   resetAll(): void;
 };
 
@@ -107,7 +113,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => setHapticsEnabled(profile.settings.vibrate !== false), [profile.settings.vibrate]);
 
-  const commit = useCallback((next: Profile) => {
+  const commit = useCallback((next: Profile, touch = true) => {
+    if (touch) next = { ...next, updatedAt: Date.now() };
     ref.current = next;
     setProfile(next);
     AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
@@ -180,13 +187,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }, [commit]);
 
   const patch = useCallback((x: Partial<Profile>) => commit({ ...ref.current, ...x }), [commit]);
+  const replace = useCallback((x: Profile) => commit({ ...NEW_PROFILE, ...x }, false), [commit]);
 
   const resetAll = useCallback(() => {
     const p = ref.current;
     commit({ ...NEW_PROFILE, playerId: p.playerId, name: p.name });
   }, [commit]);
 
-  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, resetAll }), [profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, resetAll]);
+  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, replace, resetAll }), [profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, replace, resetAll]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

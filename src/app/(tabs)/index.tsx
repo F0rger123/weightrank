@@ -11,6 +11,7 @@ import { EXERCISE_ORDER, EXERCISES } from "@/domain/exercises";
 import { currentStreak, dailyQuests, dayKey, levelFor, questProgress, sessionsOn } from "@/domain/progress";
 import { rankFor } from "@/domain/rating";
 import { APP_VERSION } from "@/lib/config";
+import { useAccount } from "@/store/account";
 import { useProfile } from "@/store/profile";
 import { Bar, Card, EXERCISE_ICON, RankBadge, SectionLabel, StatPill } from "@/ui/bits";
 import { Confetti, Flame } from "@/ui/celebrate";
@@ -23,6 +24,8 @@ export default function TrainScreen() {
   const insets = useSafeAreaInsets();
   const bottomSpace = useIslandSpace();
   const { profile, patch } = useProfile();
+  const { account, friends, invites } = useAccount();
+  const online = friends.filter((f) => f.status === "friends" && f.online).length;
   const today = dayKey(new Date());
   const todays = sessionsOn(profile.sessions, today);
   const streak = currentStreak(profile.sessions, new Date());
@@ -113,20 +116,41 @@ export default function TrainScreen() {
         })}
       </View>
 
-      <Appear i={7}>
-        <Tap onPress={() => router.push("/challenge")} scaleTo={0.98}>
-          <Card style={s.invite}>
+      <Appear i={7} style={{ flexDirection: "row", gap: 10 }}>
+        <Tap onPress={() => router.push("/friends")} scaleTo={0.97} style={{ flex: 1 }}>
+          <Card style={s.mini}>
             <View style={[s.tileIcon, { backgroundColor: C.violet + "22" }]}>
-              <MaterialCommunityIcons name="account-multiple-plus" size={24} color={C.violet} />
+              <MaterialCommunityIcons name="account-group" size={24} color={C.violet} />
             </View>
-            <View style={{ flex: 1 }}>
-              <Text style={F.h2}>Challenge a friend</Text>
-              <Text style={F.small}>Send a link. They try to beat your score.</Text>
+            <Text style={F.h2}>Friends</Text>
+            <Text style={F.small}>{invites.length ? `${invites.length} duel invite${invites.length > 1 ? "s" : ""}!` : online ? `${online} online` : "Add & duel live"}</Text>
+            {invites.length > 0 && <View style={s.badge}><Text style={s.badgeText}>{invites.length}</Text></View>}
+          </Card>
+        </Tap>
+        <Tap onPress={() => router.push("/challenge")} scaleTo={0.97} style={{ flex: 1 }}>
+          <Card style={s.mini}>
+            <View style={[s.tileIcon, { backgroundColor: C.warn + "22" }]}>
+              <MaterialCommunityIcons name="trophy-outline" size={24} color={C.warn} />
             </View>
-            <MaterialCommunityIcons name="chevron-right" size={24} color={C.faint} />
+            <Text style={F.h2}>Challenge</Text>
+            <Text style={F.small}>Send a score to beat</Text>
           </Card>
         </Tap>
       </Appear>
+      {account?.guest && (
+        <Appear i={8}>
+          <Tap onPress={() => router.push("/account")} scaleTo={0.98}>
+            <Card style={[s.invite, { borderColor: C.accent + "55" }]}>
+              <MaterialCommunityIcons name="cloud-upload" size={26} color={C.accent} />
+              <View style={{ flex: 1 }}>
+                <Text style={F.body}>Save your progress</Text>
+                <Text style={F.small}>Free account: keep your rank on any phone.</Text>
+              </View>
+              <MaterialCommunityIcons name="chevron-right" size={24} color={C.faint} />
+            </Card>
+          </Tap>
+        </Appear>
+      )}
 
       <Appear i={8}>
         <SectionLabel>Today's quests</SectionLabel>
@@ -171,6 +195,9 @@ const s = StyleSheet.create({
   tile: { backgroundColor: C.surface, borderRadius: R.lg, padding: 16, gap: 6, borderWidth: 1, borderColor: C.line, minHeight: 128, justifyContent: "flex-end" },
   tileIcon: { width: 42, height: 42, borderRadius: 14, backgroundColor: C.accent + "1A", alignItems: "center", justifyContent: "center", marginBottom: 4 },
   tileName: { fontSize: 18, fontWeight: "900", color: C.text },
+  mini: { gap: 4, padding: 14, minHeight: 130, justifyContent: "flex-end" },
+  badge: { position: "absolute", top: 10, right: 10, minWidth: 22, height: 22, borderRadius: 11, backgroundColor: C.bad, alignItems: "center", justifyContent: "center", paddingHorizontal: 6 },
+  badgeText: { color: "#fff", fontWeight: "900", fontSize: 12 },
   invite: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
   questRow: { flexDirection: "row", alignItems: "center", gap: 10 },
 });

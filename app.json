@@ -65,7 +65,14 @@
     },
     "extra": {
       "updateFeedUrl": "https://github.com/F0rger123/weightrank/releases/latest/download/latest.json",
-      "webUrl": "https://f0rger123.github.io/weightrank"
+      "webUrl": "https://f0rger123.github.io/weightrank",
+      "firebase": {
+        "apiKey": "AIzaSyCKHKAnG5rP8DgieIsarVsCdyUIBixnjMI",
+        "authDomain": "weightrank-f0rger.firebaseapp.com",
+        "projectId": "weightrank-f0rger",
+        "appId": "1:49801699144:web:71074d8d1156a4438f1d7d",
+        "databaseURL": "https://weightrank-f0rger-default-rtdb.firebaseio.com"
+      }
     }
   }
 }

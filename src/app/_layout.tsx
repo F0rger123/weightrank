@@ -4,9 +4,11 @@ import { warmupPose } from "../../modules/pose-camera";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AccountProvider } from "@/store/account";
 import { ProfileProvider } from "@/store/profile";
 import { C } from "@/ui/theme";
 import { IntroSplash } from "@/ui/IntroSplash";
+import { InviteToast } from "@/ui/InviteToast";
 import { UpdateBanner } from "@/ui/UpdateBanner";
 
 export default function RootLayout() {
@@ -16,6 +18,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: C.bg }}>
     <SafeAreaProvider>
       <ProfileProvider>
+      <AccountProvider>
         <StatusBar style="light" />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg }, animation: "fade" }}>
           <Stack.Screen name="(tabs)" />
@@ -26,9 +29,13 @@ export default function RootLayout() {
           <Stack.Screen name="install" options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
           <Stack.Screen name="placement" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="account" options={{ animation: "slide_from_right" }} />
+          <Stack.Screen name="friends" options={{ animation: "slide_from_right" }} />
         </Stack>
         <UpdateBanner />
+        <InviteToast />
         <IntroSplash />
+      </AccountProvider>
       </ProfileProvider>
     </SafeAreaProvider>
     </GestureHandlerRootView>

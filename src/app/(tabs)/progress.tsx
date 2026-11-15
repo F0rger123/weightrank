@@ -6,6 +6,7 @@ import { useIslandSpace } from "@/ui/IslandTabBar";
 import { EXERCISE_ORDER, EXERCISES } from "@/domain/exercises";
 import { ACHIEVEMENTS, bestStreak, currentStreak, dayKey, levelFor } from "@/domain/progress";
 import { APP_VERSION } from "@/lib/config";
+import { useAccount } from "@/store/account";
 import { useProfile } from "@/store/profile";
 import { Bar, Card, SectionLabel } from "@/ui/bits";
 import { C, F, R } from "@/ui/theme";
@@ -14,6 +15,7 @@ export default function ProgressTab() {
   const insets = useSafeAreaInsets();
   const bottomSpace = useIslandSpace();
   const { profile, setSettings, resetAll } = useProfile();
+  const { account } = useAccount();
   const lvl = levelFor(profile.xp);
   const sessions = profile.sessions;
   const now = new Date();
@@ -89,6 +91,16 @@ export default function ProgressTab() {
 
       <SectionLabel>Settings</SectionLabel>
       <Card style={{ gap: 14 }}>
+        <Pressable onPress={() => router.push("/account")} style={s.row}>
+          <MaterialCommunityIcons name="account-circle" size={20} color={C.accent} />
+          <Text style={[F.body, { flex: 1 }]}>{account && !account.guest ? `Account: ${account.email}` : "Create account / sign in"}</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={C.faint} />
+        </Pressable>
+        <Pressable onPress={() => router.push("/friends")} style={s.row}>
+          <MaterialCommunityIcons name="account-group" size={20} color={C.accent} />
+          <Text style={[F.body, { flex: 1 }]}>Friends</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={C.faint} />
+        </Pressable>
         <Pressable onPress={() => router.push("/install")} style={s.row}>
           <MaterialCommunityIcons name="cellphone-arrow-down" size={20} color={C.accent} />
           <Text style={[F.body, { flex: 1 }]}>Get the app / send it to a friend</Text>
@@ -118,7 +130,7 @@ export default function ProgressTab() {
           <Text style={[F.body, { color: C.bad }]}>Reset progress</Text>
         </Pressable>
       </Card>
-      <Text style={[F.small, { textAlign: "center" }]}>WeightRank v{APP_VERSION} · Progress is saved on this phone. Accounts and online leaderboards are coming.</Text>
+      <Text style={[F.small, { textAlign: "center" }]}>WeightRank v{APP_VERSION} · Progress is saved on this phone, and to your account when signed in.</Text>
     </ScrollView>
   );
 }

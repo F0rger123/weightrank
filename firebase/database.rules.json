@@ -1,0 +1,51 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        "profile": { ".read": "auth.uid === $uid", ".write": "auth.uid === $uid" },
+        "public": {
+          ".read": "auth != null",
+          ".write": "auth.uid === $uid",
+          ".validate": "newData.hasChildren(['name', 'rating'])"
+        },
+        "friends": {
+          ".read": "auth.uid === $uid",
+          "$fid": {
+            ".write": "auth.uid === $uid || auth.uid === $fid",
+            ".validate": "!newData.exists() || newData.child('status').val().matches(/^(pending_out|pending_in|friends)$/)"
+          }
+        },
+        "invites": {
+          ".read": "auth.uid === $uid",
+          "$code": {
+            ".write": "auth != null && (auth.uid === $uid || newData.child('from').val() === auth.uid || !newData.exists())"
+          }
+        }
+      }
+    },
+    "codes": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null && (!data.exists() || data.val() === auth.uid)",
+        ".validate": "newData.val() === auth.uid"
+      }
+    },
+    "status": {
+      "$uid": { ".read": "auth != null", ".write": "auth.uid === $uid" }
+    },
+    "queue": {
+      "$exercise": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && (auth.uid === $uid || (data.exists() && newData.exists()))"
+        }
+      }
+    },
+    "rooms": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
