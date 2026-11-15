@@ -45,7 +45,19 @@
           }
         }
       ],
-      "./plugins/withShortNativeBuildPath"
+      "./plugins/withShortNativeBuildPath",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#07080A",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 150,
+          "dark": {
+            "backgroundColor": "#07080A",
+            "image": "./assets/splash-icon.png"
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,
