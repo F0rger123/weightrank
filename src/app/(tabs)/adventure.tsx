@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIslandSpace } from "@/ui/IslandTabBar";
 import { creatureFor, repDamage } from "@/domain/adventure";
 import { EXERCISE_ORDER, EXERCISES, ExerciseId } from "@/domain/exercises";
 import { levelFor } from "@/domain/progress";
@@ -12,6 +13,7 @@ import { C, F, R } from "@/ui/theme";
 
 export default function AdventureTab() {
   const insets = useSafeAreaInsets();
+  const bottomSpace = useIslandSpace();
   const { profile } = useProfile();
   const [exercise, setExercise] = useState<ExerciseId>("pushup");
   const lvl = levelFor(profile.xp);
@@ -19,7 +21,7 @@ export default function AdventureTab() {
   const hit = EXERCISES[exercise].kind === "hold" ? null : repDamage(exercise, lvl.level, false);
 
   return (
-    <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}>
+    <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 16, paddingBottom: bottomSpace }]}>
       <Text style={F.h1}>Adventure</Text>
       <Text style={F.small}>Every clean rep is a hit. Perfect-depth reps crit for 1.5×. Beat the creature before time runs out.</Text>
 

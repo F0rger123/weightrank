@@ -15,12 +15,14 @@
 - [x] Bottom bar sits above the phone's gesture bar
 - [x] In-app "update available" banner (switch on with `extra.updateFeedUrl`)
 - [x] README, AI guide, llms.txt, SETUP.md
+- [x] Floating island tab bar above the gesture bar
+- [x] Camera preview fix (native view sizing) and padded-frame fix
+- [x] Self-updating APK: downloads new release on launch, opens installer
+- [x] iPhone web app live on GitHub Pages
 
 ## Waiting on the owner (see SETUP.md)
 - [ ] Test the APK on the Pixel: app, camera and pose model start on an emulator with no crash; real-body tracking still untested
 - [ ] Supabase project for online play: code is ready, needs URL + publishable key
-- [ ] Web hosting for the iPhone version and https invite links
-- [ ] Expo account for silent over-the-air updates
 
 ## Not built yet
 - [ ] Online leaderboards and accounts (needs Supabase)

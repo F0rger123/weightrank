@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ProfileProvider } from "@/store/profile";
 import { C } from "@/ui/theme";
+import { UpdateBanner } from "@/ui/UpdateBanner";
 
 export default function RootLayout() {
   return (
@@ -19,6 +20,7 @@ export default function RootLayout() {
           <Stack.Screen name="challenge" options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="install" options={{ animation: "slide_from_right" }} />
         </Stack>
+        <UpdateBanner />
       </ProfileProvider>
     </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -173,7 +173,7 @@ const s = StyleSheet.create({
   notice: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", padding: 32, gap: 16 },
   btn: { backgroundColor: C.accent, paddingHorizontal: 22, paddingVertical: 12, borderRadius: R.pill },
   btnText: { color: C.accentInk, fontWeight: "800" },
-  status: { position: "absolute", bottom: 12, left: 12, right: 12, backgroundColor: "#000a", padding: 10, borderRadius: R.sm },
+  status: { position: "absolute", top: 130, left: 16, right: 16, backgroundColor: "#000d", padding: 12, borderRadius: R.sm, borderWidth: 1, borderColor: C.warn },
   statusText: { color: C.warn, fontSize: 12 },
   sim: { position: "absolute", top: 190, alignSelf: "center", alignItems: "center", zIndex: 5 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: R.pill, backgroundColor: C.surface2 },

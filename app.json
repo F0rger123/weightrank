@@ -3,7 +3,7 @@
     "name": "WeightRank",
     "slug": "weightrank",
     "scheme": "weightrank",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -14,9 +14,10 @@
     },
     "android": {
       "package": "app.weightrank",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.CAMERA",
+        "android.permission.REQUEST_INSTALL_PACKAGES"
       ],
       "adaptiveIcon": {
         "backgroundColor": "#0B0D10",
@@ -28,7 +29,8 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "bundler": "metro"
+      "bundler": "metro",
+      "output": "single"
     },
     "updates": {
       "enabled": false
@@ -46,10 +48,12 @@
       "./plugins/withShortNativeBuildPath"
     ],
     "experiments": {
-      "typedRoutes": false
+      "typedRoutes": false,
+      "baseUrl": "/weightrank"
     },
     "extra": {
-      "updateFeedUrl": ""
+      "updateFeedUrl": "https://github.com/F0rger123/weightrank/releases/latest/download/latest.json",
+      "webUrl": "https://f0rger123.github.io/weightrank"
     }
   }
 }

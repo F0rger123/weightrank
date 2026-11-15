@@ -3,6 +3,7 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import {
   ACHIEVEMENTS, dailyQuests, dayKey, questProgress, Session, sessionsOn, xpFor,
 } from "@/domain/progress";
+import { setHapticsEnabled } from "@/ui/haptics";
 import { applyDelta, rankFor, RankId, RANKS, ratingDelta, START_RATING } from "@/domain/rating";
 
 /** Everything the app remembers, stored on the phone. */
@@ -17,7 +18,7 @@ export type Profile = {
   /** Quest ids whose XP has been paid out. */
   questsPaid: string[];
   achievements: string[];
-  settings: { facing: "front" | "back"; voice: boolean };
+  settings: { facing: "front" | "back"; voice: boolean; vibrate?: boolean };
   /** Random id for online play; never tied to an account. */
   playerId: string;
   /** Name shown to friends and online opponents. */
@@ -86,6 +87,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .catch(() => {})
       .finally(() => setReady(true));
   }, []);
+
+  useEffect(() => setHapticsEnabled(profile.settings.vibrate !== false), [profile.settings.vibrate]);
 
   const commit = useCallback((next: Profile) => {
     ref.current = next;

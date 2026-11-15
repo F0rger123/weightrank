@@ -2,38 +2,44 @@ import * as Haptics from "expo-haptics";
 import { Platform, Vibration } from "react-native";
 
 /**
- * One place for every buzz in the app. Android's "touch feedback" setting can
- * mute expo-haptics impacts, so reps also use a short direct vibration that
- * always comes through.
+ * Every buzz in the app. Uses the phone's vibration motor directly (not the
+ * system "touch feedback" path, which many phones have switched off), plus
+ * expo-haptics for a crisper feel where supported. Can be turned off in Settings.
  */
 const native = Platform.OS !== "web";
 const safe = (p: Promise<unknown>) => p.catch(() => {});
+let enabled = true;
+
+export function setHapticsEnabled(on: boolean) {
+  enabled = on;
+}
+
+const buzz = (pattern: number | number[]) => {
+  if (native && enabled) Vibration.vibrate(pattern);
+};
 
 export const haptic = {
   /** Buttons, tabs, chips. */
   tap() {
-    if (native) safe(Haptics.selectionAsync());
+    buzz(18);
   },
   /** A counted rep. */
   rep(perfect = false) {
-    if (!native) return;
-    Vibration.vibrate(perfect ? [0, 35, 60, 35] : 40);
-    safe(Haptics.impactAsync(perfect ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Medium));
+    buzz(perfect ? [0, 45, 60, 45] : 50);
+    if (native && enabled) safe(Haptics.impactAsync(perfect ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Medium));
   },
   /** A rep that didn't count. */
   reject() {
-    if (native) safe(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning));
+    buzz([0, 25, 50, 25, 50, 25]);
   },
   /** Countdown ticks. */
   tick() {
-    if (native) safe(Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Rigid));
+    buzz(30);
   },
   win() {
-    if (!native) return;
-    Vibration.vibrate([0, 60, 80, 60, 80, 120]);
-    safe(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
+    buzz([0, 60, 80, 60, 80, 160]);
   },
   lose() {
-    if (native) safe(Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error));
+    buzz([0, 220]);
   },
 };

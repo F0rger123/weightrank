@@ -94,7 +94,8 @@ flowchart LR
 ### ▌ Install
 
 **Android:** open [the latest release](https://github.com/F0rger123/weightrank/releases/latest) on the phone → tap the `.apk` → allow installs from your browser → Install.
-**iPhone:** open the WeightRank web link in Safari → Share → **Add to Home Screen**. (Goes live once web hosting is on: see [`SETUP.md`](SETUP.md).)
+**iPhone:** open **https://f0rger123.github.io/weightrank/** in Safari → Share → **Add to Home Screen**.
+**Updates:** the Android app checks for a new version each time it opens, downloads it, and asks you to tap Install.
 
 ### ▌ Build it
 

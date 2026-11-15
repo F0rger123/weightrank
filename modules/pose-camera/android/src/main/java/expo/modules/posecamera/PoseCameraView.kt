@@ -58,10 +58,19 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
   private var frameH = 0
   private var lastFrameAt = 0L
   private var fps = 0.0
-  private var reusableBitmap: Bitmap? = null
+
+  // React Native never measures views added from native code, so without this the
+  // camera preview stays 0x0 (a black screen). Let Android lay out our children.
+  override val shouldUseAndroidLayout = true
 
   init {
     addView(previewView)
+  }
+
+  override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
+    super.onSizeChanged(w, h, oldw, oldh)
+    previewView.measure(MeasureSpec.makeMeasureSpec(w, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(h, MeasureSpec.EXACTLY))
+    previewView.layout(0, 0, w, h)
   }
 
   fun setFacing(value: String) {
@@ -185,9 +194,8 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
       return
     }
     try {
-      val src = reusableBitmap?.takeIf { it.width == image.width && it.height == image.height }
-        ?: Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888).also { reusableBitmap = it }
-      src.copyPixelsFromBuffer(image.planes[0].buffer)
+      // toBitmap() handles row padding (rowStride > width * 4), which many phones add.
+      val src = image.toBitmap()
       // Rotate upright and mirror the front camera, so landmarks line up with the preview.
       val m = Matrix().apply {
         postRotate(image.imageInfo.rotationDegrees.toFloat())

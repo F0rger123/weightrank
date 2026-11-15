@@ -11,7 +11,10 @@ type Props = {
 };
 
 // Pinned versions: WASM must match the npm package version.
-const WASM = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.3/wasm";
+const CDN = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.2.3";
+const WASM = `${CDN}/wasm`;
+// Loaded at runtime from the CDN (the bundler can't process MediaPipe's own dynamic imports).
+const loadVision = new Function("u", "return import(u)") as (u: string) => Promise<any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 const MODEL = "https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task";
 
 /**
@@ -42,7 +45,7 @@ export function WebPoseCamera({ facing, active, onFrame, onFrameSize }: Props) {
         const v = video.current!;
         v.srcObject = stream;
         await v.play();
-        const { FilesetResolver, PoseLandmarker } = await import("@mediapipe/tasks-vision");
+        const { FilesetResolver, PoseLandmarker } = await loadVision(`${CDN}/vision_bundle.mjs`);
         const files = await FilesetResolver.forVisionTasks(WASM);
         landmarker = (await PoseLandmarker.createFromOptions(files, {
           baseOptions: { modelAssetPath: MODEL, delegate: "GPU" },
@@ -67,7 +70,12 @@ export function WebPoseCamera({ facing, active, onFrame, onFrameSize }: Props) {
         };
         loop();
       } catch (e) {
-        setError(e instanceof Error ? e.message : "Camera failed to start");
+        const name = e instanceof Error ? e.name : "";
+        setError(
+          name === "NotAllowedError" ? "Camera blocked. Allow camera access for this site (iPhone: Settings → Safari → Camera → Allow), then reload."
+          : name === "NotFoundError" ? "No camera found on this device."
+          : e instanceof Error ? e.message : "Camera failed to start",
+        );
         setLoading(false);
       }
     })();

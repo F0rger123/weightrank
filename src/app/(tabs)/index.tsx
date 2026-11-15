@@ -1,13 +1,14 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { Linking, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIslandSpace } from "@/ui/IslandTabBar";
 import { EXERCISE_ORDER, EXERCISES } from "@/domain/exercises";
 import { currentStreak, dailyQuests, dayKey, levelFor, questProgress, sessionsOn } from "@/domain/progress";
 import { rankFor } from "@/domain/rating";
+import { APP_VERSION } from "@/lib/config";
 import { useProfile } from "@/store/profile";
-import { useApkUpdate } from "@/store/updates";
 import { Bar, Card, EXERCISE_ICON, RankBadge, SectionLabel, StatPill } from "@/ui/bits";
 import { Logo } from "@/ui/Logo";
 import { Appear, Tap } from "@/ui/motion";
@@ -16,19 +17,19 @@ import { C, F, R } from "@/ui/theme";
 /** Open the app, pick an exercise, train. No setup, no sign-up, no paywall. */
 export default function TrainScreen() {
   const insets = useSafeAreaInsets();
+  const bottomSpace = useIslandSpace();
   const { profile } = useProfile();
   const today = dayKey(new Date());
   const todays = sessionsOn(profile.sessions, today);
   const streak = currentStreak(profile.sessions, new Date());
   const quests = dailyQuests(today);
-  const update = useApkUpdate();
   const rank = rankFor(profile.rating);
   const lvl = levelFor(profile.xp);
   const todayReps = todays.filter((x) => x.exercise !== "plank").reduce((a, b) => a + b.amount, 0);
   const [hero, ...rest] = EXERCISE_ORDER;
 
   return (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.page, { paddingTop: insets.top + 14 }]}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.page, { paddingTop: insets.top + 14, paddingBottom: bottomSpace }]}>
       <Appear style={s.header}>
         <Logo size={30} />
         <View style={{ flexDirection: "row", gap: 8 }}>
@@ -36,15 +37,6 @@ export default function TrainScreen() {
         </View>
       </Appear>
 
-      {update && (
-        <Tap onPress={() => Linking.openURL(update.apkUrl)} style={s.update}>
-          <MaterialCommunityIcons name="download" size={20} color={C.accentInk} />
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: C.accentInk, fontWeight: "900" }}>Update available: {update.version}</Text>
-            {update.notes ? <Text style={{ color: C.accentInk }} numberOfLines={2}>{update.notes}</Text> : null}
-          </View>
-        </Tap>
-      )}
 
       <Appear i={1}>
         <Tap onPress={() => router.push("/duel")} scaleTo={0.98}>
@@ -131,7 +123,7 @@ export default function TrainScreen() {
           })}
         </Card>
       </Appear>
-      <Text style={[F.small, { textAlign: "center", marginTop: 6 }]}>Free forever. Video never leaves your phone.</Text>
+      <Text style={[F.small, { textAlign: "center", marginTop: 6 }]}>Free forever. Video never leaves your phone. · v{APP_VERSION}</Text>
     </ScrollView>
   );
 }

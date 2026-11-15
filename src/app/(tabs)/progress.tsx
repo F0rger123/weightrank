@@ -2,14 +2,17 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIslandSpace } from "@/ui/IslandTabBar";
 import { EXERCISE_ORDER, EXERCISES } from "@/domain/exercises";
 import { ACHIEVEMENTS, bestStreak, currentStreak, dayKey, levelFor } from "@/domain/progress";
+import { APP_VERSION } from "@/lib/config";
 import { useProfile } from "@/store/profile";
 import { Bar, Card, SectionLabel } from "@/ui/bits";
 import { C, F, R } from "@/ui/theme";
 
 export default function ProgressTab() {
   const insets = useSafeAreaInsets();
+  const bottomSpace = useIslandSpace();
   const { profile, setSettings, resetAll } = useProfile();
   const lvl = levelFor(profile.xp);
   const sessions = profile.sessions;
@@ -31,7 +34,7 @@ export default function ProgressTab() {
   }));
 
   return (
-    <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}>
+    <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 16, paddingBottom: bottomSpace }]}>
       <Text style={F.h1}>Progress</Text>
 
       <View style={s.stats}>
@@ -97,6 +100,10 @@ export default function ProgressTab() {
           <MaterialCommunityIcons name="chevron-right" size={20} color={C.faint} />
         </Pressable>
         <View style={s.row}>
+          <Text style={[F.body, { flex: 1 }]}>Vibration</Text>
+          <Switch value={profile.settings.vibrate !== false} onValueChange={(v) => setSettings({ vibrate: v })} trackColor={{ true: C.accent, false: C.surface2 }} />
+        </View>
+        <View style={s.row}>
           <Text style={[F.body, { flex: 1 }]}>Count reps out loud</Text>
           <Switch value={profile.settings.voice} onValueChange={(v) => setSettings({ voice: v })} trackColor={{ true: C.accent, false: C.surface2 }} />
         </View>
@@ -111,7 +118,7 @@ export default function ProgressTab() {
           <Text style={[F.body, { color: C.bad }]}>Reset progress</Text>
         </Pressable>
       </Card>
-      <Text style={[F.small, { textAlign: "center" }]}>Progress is saved on this phone. Accounts and online leaderboards are coming.</Text>
+      <Text style={[F.small, { textAlign: "center" }]}>WeightRank v{APP_VERSION} · Progress is saved on this phone. Accounts and online leaderboards are coming.</Text>
     </ScrollView>
   );
 }
