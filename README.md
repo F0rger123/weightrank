@@ -67,7 +67,7 @@ flowchart LR
 flowchart LR
   A["Tap Find opponent"] --> B{"Anyone online<br/>near your rating?"}
   B -- "Yes" --> C["Matched with a real player"]
-  B -- "Not within 15 s" --> D["Matched with a fair bot"]
+  B -- "Not within 10 s" --> D["Matched with a fair bot"]
   C --> E["Both phones count down together"]
   D --> E
   E --> F["60 seconds, live scores"]

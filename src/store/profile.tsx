@@ -31,6 +31,8 @@ export type Profile = {
   placementReps?: number | null;
   /** Best daily streak seen, for the streak celebration. */
   lastStreakCelebrated?: number;
+  /** Adventure: level id -> best stars. */
+  campaign?: Record<string, number>;
 };
 
 function rankForId(r: number): RankId {
@@ -72,7 +74,7 @@ type Ctx = {
   profile: Profile;
   ready: boolean;
   /** Record a finished session; pays out XP, quests and achievements. */
-  saveSession(s: Session, duel?: { opponentRating: number }, extra?: { adventureCleared?: boolean }): SaveResult;
+  saveSession(s: Session, duel?: { opponentRating: number }, extra?: { adventureCleared?: boolean; level?: { id: string; stars: number } }): SaveResult;
   setSettings(patch: Partial<Profile["settings"]>): void;
   setName(name: string): void;
   /** First-launch setup: body details and placement result set the starting rating. */
@@ -142,7 +144,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const newIdx = RANKS.indexOf(newRank);
     const peakRank = newIdx > oldIdx ? newRank.id : p.peakRank;
     if (newIdx > oldIdx) result.rankUp = newRank.id;
-    const adventureStage = p.adventureStage + (extra?.adventureCleared ? 1 : 0);
+    const campaign = { ...(p.campaign ?? {}) };
+    if (extra?.level) campaign[extra.level.id] = Math.max(campaign[extra.level.id] ?? 0, extra.level.stars);
+    const cleared = Object.values(campaign).filter((v) => v > 0).length;
+    const adventureStage = Math.max(p.adventureStage + (extra?.adventureCleared && !extra.level ? 1 : 0), cleared + 1);
 
     const stats = { sessions, rating, peakRank, adventureStage };
     const achievements = [...p.achievements];
@@ -153,7 +158,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       }
     }
     result.xpGained = xp - p.xp;
-    commit({ ...p, rating, games, peakRank, xp, sessions, questsPaid, achievements, adventureStage });
+    commit({ ...p, rating, games, peakRank, xp, sessions, questsPaid, achievements, adventureStage, campaign });
     return result;
   }, [commit]);
 

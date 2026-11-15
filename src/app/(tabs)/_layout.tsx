@@ -1,9 +1,13 @@
-import { Tabs } from "expo-router";
+import { Redirect, Tabs } from "expo-router";
 import { View } from "react-native";
+import { useProfile } from "@/store/profile";
 import { IslandTabBar } from "@/ui/IslandTabBar";
 import { C } from "@/ui/theme";
 
 export default function TabsLayout() {
+  const { profile, ready } = useProfile();
+  // First launch: set up body details and placement before anything else.
+  if (ready && !profile.onboarded) return <Redirect href="/onboarding" />;
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Tabs

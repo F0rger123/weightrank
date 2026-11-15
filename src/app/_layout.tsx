@@ -4,6 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ProfileProvider } from "@/store/profile";
 import { C } from "@/ui/theme";
+import { IntroSplash } from "@/ui/IntroSplash";
 import { UpdateBanner } from "@/ui/UpdateBanner";
 
 export default function RootLayout() {
@@ -19,8 +20,11 @@ export default function RootLayout() {
           <Stack.Screen name="fight/[exercise]" options={{ animation: "slide_from_bottom", gestureEnabled: false }} />
           <Stack.Screen name="challenge" options={{ animation: "slide_from_right" }} />
           <Stack.Screen name="install" options={{ animation: "slide_from_right" }} />
+          <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+          <Stack.Screen name="placement" options={{ gestureEnabled: false }} />
         </Stack>
         <UpdateBanner />
+        <IntroSplash />
       </ProfileProvider>
     </SafeAreaProvider>
     </GestureHandlerRootView>

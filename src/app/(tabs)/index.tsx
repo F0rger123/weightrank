@@ -1,6 +1,9 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useEffect } from "react";
+import Animated, { ZoomIn, ZoomOut } from "react-native-reanimated";
+import { haptic } from "@/ui/haptics";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useIslandSpace } from "@/ui/IslandTabBar";
@@ -10,6 +13,7 @@ import { rankFor } from "@/domain/rating";
 import { APP_VERSION } from "@/lib/config";
 import { useProfile } from "@/store/profile";
 import { Bar, Card, EXERCISE_ICON, RankBadge, SectionLabel, StatPill } from "@/ui/bits";
+import { Confetti, Flame } from "@/ui/celebrate";
 import { Logo } from "@/ui/Logo";
 import { Appear, Tap } from "@/ui/motion";
 import { C, F, R } from "@/ui/theme";
@@ -18,7 +22,7 @@ import { C, F, R } from "@/ui/theme";
 export default function TrainScreen() {
   const insets = useSafeAreaInsets();
   const bottomSpace = useIslandSpace();
-  const { profile } = useProfile();
+  const { profile, patch } = useProfile();
   const today = dayKey(new Date());
   const todays = sessionsOn(profile.sessions, today);
   const streak = currentStreak(profile.sessions, new Date());
@@ -27,13 +31,35 @@ export default function TrainScreen() {
   const lvl = levelFor(profile.xp);
   const todayReps = todays.filter((x) => x.exercise !== "plank").reduce((a, b) => a + b.amount, 0);
   const [hero, ...rest] = EXERCISE_ORDER;
+  const celebrate = streak > 0 && streak > (profile.lastStreakCelebrated ?? 0);
+  useEffect(() => {
+    if (!celebrate) return;
+    haptic.win();
+    const t = setTimeout(() => patch({ lastStreakCelebrated: streak }), 3500);
+    return () => clearTimeout(t);
+  }, [celebrate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
+    <View style={{ flex: 1 }}>
+    {celebrate && (
+      <View pointerEvents="none" style={[StyleSheet.absoluteFill, { zIndex: 50, alignItems: "center", justifyContent: "center" }]}>
+        <Confetti count={50} />
+        <Animated.View entering={ZoomIn.springify().damping(7)} exiting={ZoomOut} style={s.streakToast}>
+          <Flame size={64} />
+          <Text style={[F.display, { fontSize: 40 }]}>{streak}-day streak!</Text>
+          <Text style={F.small}>Train tomorrow to keep it alive.</Text>
+        </Animated.View>
+      </View>
+    )}
     <ScrollView style={{ flex: 1 }} contentContainerStyle={[s.page, { paddingTop: insets.top + 14, paddingBottom: bottomSpace }]}>
       <Appear style={s.header}>
         <Logo size={30} />
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <StatPill icon="fire" value={streak} label="streak" color={streak ? C.accent : C.faint} />
+          <View style={s.streakPill}>
+            <Flame lit={streak > 0} />
+            <Text style={[F.body, F.number, { fontWeight: "900" }]}>{streak}</Text>
+            <Text style={[F.small, { fontSize: 12 }]}>day streak</Text>
+          </View>
         </View>
       </Appear>
 
@@ -125,12 +151,15 @@ export default function TrainScreen() {
       </Appear>
       <Text style={[F.small, { textAlign: "center", marginTop: 6 }]}>Free forever. Video never leaves your phone. · v{APP_VERSION}</Text>
     </ScrollView>
+    </View>
   );
 }
 
 const s = StyleSheet.create({
   page: { padding: 16, gap: 12, paddingBottom: 32 },
   header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 4 },
+  streakPill: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, height: 38, borderRadius: R.pill, borderWidth: 1, borderColor: C.line },
+  streakToast: { alignItems: "center", gap: 6, backgroundColor: C.surface, padding: 24, borderRadius: R.lg, borderWidth: 1, borderColor: "#FF8A1F88" },
   update: { flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.accent, borderRadius: R.md, padding: 14 },
   status: { flexDirection: "row", alignItems: "center", gap: 14, padding: 16 },
   hero: { borderRadius: R.lg, padding: 20, minHeight: 168, justifyContent: "flex-end", overflow: "hidden" },
