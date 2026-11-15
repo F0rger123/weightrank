@@ -57,3 +57,10 @@ Docs: https://docs.expo.dev/eas/index.md
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
+
+## Releasing
+
+1. Bump `version` and `android.versionCode` in `app.json`.
+2. `npx expo prebuild --platform android` (otherwise the APK keeps the old versionCode and the in-app updater loops).
+3. Build, then `bash scripts/check-release.sh release/WeightRank-X.apk` before uploading the APK and `release/latest.json` to a GitHub release.
+4. Web: `npx expo export --platform web --output-dir dist-web`, copy `index.html` to `404.html`, push to `gh-pages`.
