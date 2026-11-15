@@ -96,7 +96,7 @@ export default function AdventureTab() {
           ))}
         </View>
         <Button label={`Fight ${picked.name}`} icon="sword" onPress={() => router.push({ pathname: "/fight/[exercise]", params: { exercise: picked.rounds[0].exercise, level: picked.id } })} />
-        <Text style={[F.small, { textAlign: "center" }]}>Finish every round before time runs out. Faster = more stars. Uses {[...new Set(picked.rounds.map((r) => EXERCISES[r.exercise].name))].join(", ")}.</Text>
+        <Text style={[F.small, { textAlign: "center" }]}>It hits back every few seconds: a rep right before its attack blocks it. Chain reps for combos, perfect depth crits. Faster = more stars. Uses {[...new Set(picked.rounds.map((r) => EXERCISES[r.exercise].name))].join(", ")}.</Text>
       </Animated.View>
     </View>
   );

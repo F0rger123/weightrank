@@ -6,7 +6,13 @@
  */
 
 export type Landmark = { x: number; y: number; z?: number; visibility?: number };
-export type Pose = Landmark[];
+export type Point3 = { x: number; y: number; z: number };
+/**
+ * Image landmarks (normalized, for drawing and "is it in frame") plus optional
+ * world landmarks in meters. Angles prefer world landmarks: they don't change
+ * with camera angle or distance, so depth is judged the same everywhere.
+ */
+export type Pose = Landmark[] & { world?: Point3[] };
 
 export const LM = {
   nose: 0,
@@ -58,6 +64,23 @@ export function angle(a: Landmark, b: Landmark, c: Landmark): number {
   if (m === 0) return 180;
   const cos = Math.min(1, Math.max(-1, dot / m));
   return (Math.acos(cos) * 180) / Math.PI;
+}
+
+/** 3D interior angle at b, in degrees. */
+export function angle3(a: Point3, b: Point3, c: Point3): number {
+  const v1 = [a.x - b.x, a.y - b.y, a.z - b.z];
+  const v2 = [c.x - b.x, c.y - b.y, c.z - b.z];
+  const dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  const m = Math.hypot(...v1) * Math.hypot(...v2);
+  if (m === 0) return 180;
+  return (Math.acos(Math.min(1, Math.max(-1, dot / m))) * 180) / Math.PI;
+}
+
+/** Joint angle at b: true 3D when world landmarks are available, else from the image. */
+export function jointAngle(p: Pose, a: number, b: number, c: number): number {
+  const w = p.world;
+  if (w && w[a] && w[b] && w[c]) return angle3(w[a], w[b], w[c]);
+  return angle(p[a], p[b], p[c]);
 }
 
 /** Angle of the segment a->b from horizontal, in degrees (0 = flat, 90 = vertical). */

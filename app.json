@@ -3,7 +3,7 @@
     "name": "WeightRank",
     "slug": "weightrank",
     "scheme": "weightrank",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -14,7 +14,7 @@
     },
     "android": {
       "package": "app.weightrank",
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.REQUEST_INSTALL_PACKAGES"

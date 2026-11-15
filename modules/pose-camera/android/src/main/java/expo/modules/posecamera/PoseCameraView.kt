@@ -18,10 +18,6 @@ import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.google.mediapipe.framework.image.BitmapImageBuilder
-import com.google.mediapipe.tasks.core.BaseOptions
-import com.google.mediapipe.tasks.core.Delegate
-import com.google.mediapipe.tasks.vision.core.RunningMode
-import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarkerResult
 import expo.modules.kotlin.AppContext
 import expo.modules.kotlin.viewevent.EventDispatcher
@@ -49,7 +45,6 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
   }
 
   private var executor: ExecutorService? = null
-  private var landmarker: PoseLandmarker? = null
   private var provider: ProcessCameraProvider? = null
   private var facing = "front"
   private var active = true
@@ -101,13 +96,16 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
     executor = null
   }
 
+  private val onResult: (PoseLandmarkerResult) -> Unit = { emitResult(it) }
+  private val onError: (String) -> Unit = { emitStatus("error", it) }
+
   private fun start() {
     if (bound) return
-    val exec = executor ?: Executors.newSingleThreadExecutor().also { executor = it }
-    exec.execute {
-      if (landmarker == null) landmarker = createLandmarker()
-      post { rebind() }
-    }
+    // Model loads (or is already warm) while the camera opens: both at once.
+    PoseEngine.listener = onResult
+    PoseEngine.errorListener = onError
+    PoseEngine.warmup(context)
+    rebind()
   }
 
   private fun stop() {
@@ -117,38 +115,8 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
       Log.w(TAG, "unbind failed", e)
     }
     bound = false
-    executor?.execute {
-      landmarker?.close()
-      landmarker = null
-    }
-  }
-
-  private fun createLandmarker(): PoseLandmarker? {
-    for (delegate in listOf(Delegate.GPU, Delegate.CPU)) {
-      try {
-        val base = BaseOptions.builder()
-          .setModelAssetPath(MODEL)
-          .setDelegate(delegate)
-          .build()
-        val options = PoseLandmarker.PoseLandmarkerOptions.builder()
-          .setBaseOptions(base)
-          .setRunningMode(RunningMode.LIVE_STREAM)
-          .setNumPoses(1)
-          .setMinPoseDetectionConfidence(0.5f)
-          .setMinPosePresenceConfidence(0.5f)
-          .setMinTrackingConfidence(0.5f)
-          .setResultListener { result: PoseLandmarkerResult, _ -> emitResult(result) }
-          .setErrorListener { e -> emitStatus("error", e.message ?: "pose error") }
-          .build()
-        val lm = PoseLandmarker.createFromOptions(context, options)
-        emitStatus("ready", delegate.name)
-        return lm
-      } catch (e: Exception) {
-        Log.w(TAG, "PoseLandmarker with $delegate failed", e)
-      }
-    }
-    emitStatus("error", "Pose model could not start on this phone")
-    return null
+    if (PoseEngine.listener === onResult) PoseEngine.listener = null
+    if (PoseEngine.errorListener === onError) PoseEngine.errorListener = null
   }
 
   private fun rebind() {
@@ -188,8 +156,7 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
   }
 
   private fun analyze(image: ImageProxy) {
-    val lm = landmarker
-    if (lm == null) {
+    if (!PoseEngine.ready) {
       image.close()
       return
     }
@@ -204,7 +171,7 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
       val upright = Bitmap.createBitmap(src, 0, 0, src.width, src.height, m, false)
       frameW = upright.width
       frameH = upright.height
-      lm.detectAsync(BitmapImageBuilder(upright).build(), SystemClock.uptimeMillis())
+      PoseEngine.detect(BitmapImageBuilder(upright).build(), SystemClock.uptimeMillis())
     } catch (e: Exception) {
       Log.w(TAG, "frame failed", e)
     } finally {
@@ -232,9 +199,22 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
       }
       out
     }
+    // World landmarks are in meters around the hips: angles from them don't
+    // change with camera angle or distance, so rep depth is measured more accurately.
+    val worlds = result.worldLandmarks()
+    val world = if (worlds.isEmpty()) emptyList<Double>() else {
+      val out = ArrayList<Double>(33 * 3)
+      for (l in worlds[0]) {
+        out.add(l.x().toDouble())
+        out.add(l.y().toDouble())
+        out.add(l.z().toDouble())
+      }
+      out
+    }
     val payload = mapOf(
       "t" to result.timestampMs().toDouble(),
       "landmarks" to flat,
+      "world" to world,
       "width" to frameW,
       "height" to frameH,
       "fps" to fps,
@@ -248,6 +228,5 @@ class PoseCameraView(context: Context, appContext: AppContext) : ExpoView(contex
 
   companion object {
     private const val TAG = "PoseCamera"
-    private const val MODEL = "pose_landmarker_full.task"
   }
 }

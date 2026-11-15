@@ -38,7 +38,22 @@ export default function Fight() {
   const [stars, setStars] = useState(0);
   const perfectRef = useRef(0);
   const dmgPerUnit = level.hp / total;
-  const hp = level.hp - doneTotal * dmgPerUnit;
+  const [dealt, setDealt] = useState(0);
+  const hp = Math.max(0, level.hp - dealt);
+  const enraged = level.boss && hp < level.hp / 2;
+  // ---- Fight mechanics: combos, crits, and a monster that hits back ----
+  const [heroHp, setHeroHp] = useState(100);
+  const [combo, setCombo] = useState(0);
+  const [callout, setCallout] = useState<{ text: string; color: string; key: number } | null>(null);
+  const [lastHit, setLastHit] = useState(0);
+  const [warn, setWarn] = useState(false);
+  const lastActionAt = useRef(0);
+  const lastRepAt = useRef(0);
+  const nextAttackAt = useRef(0);
+  const knockedOut = useRef(false);
+  const attackPower = Math.round((10 + level.world * 3) * (level.boss ? 1.4 : 1) * (enraged ? 1.3 : 1));
+  const attackEvery = Math.max(2500, (7200 - level.world * 700) * (level.boss ? 0.85 : 1) * (enraged ? 0.65 : 1));
+  const shout = (text: string, color: string) => setCallout({ text, color, key: Date.now() });
   const elapsed = startedAt ? (now - startedAt) / 1000 : 0;
   const left = Math.max(0, level.timeLimit - elapsed);
 
@@ -56,12 +71,49 @@ export default function Fight() {
     return () => clearInterval(i);
   }, [phase]);
 
+  // Monster attack loop: a red warning, then a hit, unless you are moving (a rep or plank second blocks it).
+  useEffect(() => {
+    if (phase !== "fight" || !startedAt) return;
+    if (!nextAttackAt.current) nextAttackAt.current = Date.now() + attackEvery;
+    const i = setInterval(() => {
+      const t = Date.now();
+      setWarn(t >= nextAttackAt.current - 1100);
+      if (t < nextAttackAt.current) return;
+      nextAttackAt.current = t + attackEvery;
+      setWarn(false);
+      if (t - lastActionAt.current < 1600) {
+        shout("BLOCKED", C.good);
+        haptic.tap();
+        return;
+      }
+      setCombo(0);
+      haptic.lose();
+      shout(`-${attackPower} YOU`, C.bad);
+      setHeroHp((h) => {
+        const n = Math.max(0, h - attackPower);
+        if (n === 0 && !knockedOut.current) {
+          knockedOut.current = true;
+          setTimeout(() => end(false), 400);
+        }
+        return n;
+      });
+    }, 150);
+    return () => clearInterval(i);
+  }, [phase, startedAt, attackEvery, attackPower]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Out of time
   useEffect(() => {
     if ((phase === "fight" || phase === "between") && startedAt && left <= 0) end(false);
   }, [left]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    if (phase === "fight" && hp <= 0 && !knockedOut.current) end(true);
+  }, [hp]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const ended = useRef(false);
   const end = (won: boolean) => {
+    if (ended.current) return;
+    ended.current = true;
     const st = won ? starsFor(left, level.timeLimit) : 0;
     setStars(st);
     const r = saveSession(
@@ -78,13 +130,29 @@ export default function Fight() {
   const onUnit = (perfect: boolean) => {
     if (phase !== "fight") return;
     if (perfect) perfectRef.current++;
-    if (startedAt === null) setStartedAt(Date.now());
+    const t = Date.now();
+    if (startedAt === null) setStartedAt(t);
+    lastActionAt.current = t;
+    const chained = t - lastRepAt.current < 2400;
+    lastRepAt.current = t;
+    const nextCombo = chained ? combo + 1 : 1;
+    setCombo(nextCombo);
+    const mult = (perfect ? 1.5 : 1) * (1 + Math.min(nextCombo - 1, 10) * 0.08);
+    const dmg = Math.round(dmgPerUnit * mult);
+    setLastHit(dmg);
+    setDealt((d) => d + dmg);
+    if (level.boss && hp >= level.hp / 2 && hp - dmg < level.hp / 2 && hp - dmg > 0) shout("ENRAGED!", C.bad);
+    else if (perfect) shout("CRIT!", C.warn);
+    else if (nextCombo >= 3 && nextCombo % 3 === 0) shout(`COMBO x${nextCombo}`, C.accent);
     setHits((h) => h + 1);
     setDoneTotal((d) => d + 1);
     setDone((d) => {
       const n = d + 1;
       if (n >= level.rounds[round].amount) {
-        if (round + 1 >= level.rounds.length) setTimeout(() => end(true), 300);
+        if (round + 1 >= level.rounds.length) {
+          setDealt(level.hp); // final blow
+          setTimeout(() => end(true), 300);
+        }
         else {
           setPhase("between");
           setTimeout(() => {
@@ -124,7 +192,7 @@ export default function Fight() {
           </View>
         )}
         <Text style={[F.body, { textAlign: "center" }]}>
-          {won ? `${level.name} is down with ${Math.ceil(left)}s to spare.` : `${level.name} had ${Math.ceil(hp)} HP left. Be faster next time.`}
+          {won ? `${level.name} is down with ${Math.ceil(left)}s to spare.` : heroHp <= 0 ? `${level.name} knocked you out. Keep moving: a rep just before its attack blocks it.` : `${level.name} had ${Math.ceil(hp)} HP left. Be faster next time.`}
         </Text>
         {save && (
           <Card style={{ alignSelf: "stretch", gap: 6 }}>
@@ -157,7 +225,12 @@ export default function Fight() {
           hp={hp}
           maxHp={level.hp}
           hits={hits}
-          lastHit={Math.round(dmgPerUnit)}
+          lastHit={lastHit}
+          heroHp={heroHp}
+          warn={warn}
+          combo={combo}
+          callout={callout}
+          enraged={enraged}
           round={round}
           rounds={level.rounds.length}
           task={r.exercise === "plank" ? `${done}/${r.amount}s plank` : `${done}/${r.amount} ${EXERCISES[r.exercise].name.toLowerCase()}`}

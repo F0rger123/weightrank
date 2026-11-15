@@ -4,12 +4,13 @@ import { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { Body, FitnessLevel, ftInToCm, LEVEL_TEXT, lbToKg, placementRating } from "@/domain/placement";
+import { Body, FitnessLevel, kgToLb, LEVEL_TEXT, lbToKg, placementRating } from "@/domain/placement";
 import { rankFor } from "@/domain/rating";
 import { useProfile } from "@/store/profile";
 import { Button, Chip } from "@/ui/bits";
 import { Mark } from "@/ui/Logo";
 import { Pulse, Tap } from "@/ui/motion";
+import { RulerPicker } from "@/ui/RulerPicker";
 import { C, F, R } from "@/ui/theme";
 
 type Step = "hello" | "name" | "age" | "weight" | "height" | "level" | "test";
@@ -21,28 +22,32 @@ export default function Onboarding() {
   const { profile, completeOnboarding } = useProfile();
   const [i, setI] = useState(0);
   const [name, setName] = useState(profile.name.startsWith("Athlete ") ? "" : profile.name);
-  const [age, setAge] = useState("");
-  const [us, setUs] = useState(true);
-  const [weight, setWeight] = useState("");
-  const [ft, setFt] = useState("");
-  const [inch, setInch] = useState("");
-  const [cm, setCm] = useState("");
+  const [age, setAge] = useState(25);
+  const [us, setUsRaw] = useState(true);
+  const [weight, setWeight] = useState(170); // lb or kg, matching `us`
+  const [height, setHeight] = useState(70); // inches or cm, matching `us`
+  const setUs = (v: boolean) => {
+    if (v === us) return;
+    setWeight((w) => Math.round(v ? kgToLb(w) : lbToKg(w)));
+    setHeight((h) => Math.round(v ? h / 2.54 : h * 2.54));
+    setUsRaw(v);
+  };
   const [level, setLevel] = useState<FitnessLevel | null>(null);
   const step = ORDER[i];
 
   const body = (): Body => ({
-    age: Number(age) || 25,
-    weightKg: us ? lbToKg(Number(weight) || 170) : Number(weight) || 75,
-    heightCm: us ? ftInToCm(Number(ft) || 5, Number(inch) || 9) : Number(cm) || 175,
+    age,
+    weightKg: us ? lbToKg(weight) : weight,
+    heightCm: us ? height * 2.54 : height,
     level: level ?? "some",
   });
 
   const valid: Record<Step, boolean> = {
     hello: true,
     name: true,
-    age: Number(age) >= 10 && Number(age) <= 100,
-    weight: Number(weight) >= (us ? 60 : 25) && Number(weight) <= (us ? 600 : 270),
-    height: us ? Number(ft) >= 3 && Number(ft) <= 8 && Number(inch || 0) < 12 : Number(cm) >= 100 && Number(cm) <= 250,
+    age: true,
+    weight: true,
+    height: true,
     level: !!level,
     test: true,
   };
@@ -90,17 +95,14 @@ export default function Onboarding() {
 
         {step === "age" && (
           <Q title="How old are you?" hint="Only used to estimate your level if you skip the test.">
-            <TextInput value={age} onChangeText={(t) => setAge(t.replace(/\D/g, ""))} placeholder="Age" placeholderTextColor={C.faint} keyboardType="number-pad" style={s.input} maxLength={3} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
+            <RulerPicker min={10} max={90} value={age} onChange={setAge} unit="years" />
           </Q>
         )}
 
         {step === "weight" && (
           <Q title="Your weight?" hint="Stays on your phone.">
             <Units us={us} setUs={setUs} />
-            <View style={s.row}>
-              <TextInput value={weight} onChangeText={(t) => setWeight(t.replace(/[^\d.]/g, ""))} placeholder={us ? "170" : "77"} placeholderTextColor={C.faint} keyboardType="decimal-pad" style={[s.input, { flex: 1 }]} maxLength={5} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
-              <Text style={s.unit}>{us ? "lb" : "kg"}</Text>
-            </View>
+            <RulerPicker key={us ? "lb" : "kg"} min={us ? 80 : 35} max={us ? 400 : 180} value={weight} onChange={setWeight} unit={us ? "lb" : "kg"} />
           </Q>
         )}
 
@@ -108,17 +110,9 @@ export default function Onboarding() {
           <Q title="Your height?" hint="Stays on your phone.">
             <Units us={us} setUs={setUs} />
             {us ? (
-              <View style={s.row}>
-                <TextInput value={ft} onChangeText={(t) => setFt(t.replace(/\D/g, ""))} placeholder="5" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={1} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
-                <Text style={s.unit}>ft</Text>
-                <TextInput value={inch} onChangeText={(t) => setInch(t.replace(/\D/g, ""))} placeholder="10" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={2} returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
-                <Text style={s.unit}>in</Text>
-              </View>
+              <RulerPicker key="in" min={48} max={90} value={height} onChange={setHeight} majorEvery={12} format={(v) => `${Math.floor(v / 12)}'${v % 12}"`} />
             ) : (
-              <View style={s.row}>
-                <TextInput value={cm} onChangeText={(t) => setCm(t.replace(/\D/g, ""))} placeholder="178" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={3} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
-                <Text style={s.unit}>cm</Text>
-              </View>
+              <RulerPicker key="cm" min={120} max={230} value={height} onChange={setHeight} unit="cm" />
             )}
           </Q>
         )}

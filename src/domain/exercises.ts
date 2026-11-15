@@ -1,4 +1,4 @@
-import { allVisible, angle, bestLeg, bestSide, legSeen, LM, Pose, tiltFromHorizontal, visible } from "./pose";
+import { allVisible, bestLeg, bestSide, jointAngle, legSeen, LM, Pose, tiltFromHorizontal, visible } from "./pose";
 
 export type ExerciseId = "pushup" | "squat" | "dip" | "pullup" | "plank";
 
@@ -88,7 +88,7 @@ const PUSHUP: RepExercise = {
     const s = side === "left" ? SIDE_L : SIDE_R;
     if (!allVisible(p, [s.shoulder, s.elbow, s.wrist, s.hip])) return null;
     const issues: FormIssue[] = [];
-    const elbow = angle(p[s.shoulder], p[s.elbow], p[s.wrist]);
+    const elbow = jointAngle(p, s.shoulder, s.elbow, s.wrist);
     if (tiltFromHorizontal(p[s.shoulder], p[s.hip]) > 50) issues.push("not_in_plank");
     issues.push(...legIssues(p, s.shoulder, 150, 155));
     return { value: elbow, issues };
@@ -111,8 +111,8 @@ const SQUAT: RepExercise = {
     const s = side === "left" ? SIDE_L : SIDE_R;
     if (!allVisible(p, [s.hip, s.knee, s.ankle])) return null;
     const issues: FormIssue[] = [];
-    const knee = angle(p[s.hip], p[s.knee], p[s.ankle]);
-    if (visible(p, s.shoulder) && angle(p[s.shoulder], p[s.hip], p[s.knee]) < 45) {
+    const knee = jointAngle(p, s.hip, s.knee, s.ankle);
+    if (visible(p, s.shoulder) && jointAngle(p, s.shoulder, s.hip, s.knee) < 45) {
       issues.push("chest_collapsing");
     }
     return { value: knee, issues };
@@ -135,7 +135,7 @@ const DIP: RepExercise = {
     const s = side === "left" ? SIDE_L : SIDE_R;
     if (!allVisible(p, [s.shoulder, s.elbow, s.wrist, s.hip])) return null;
     const issues: FormIssue[] = [];
-    const elbow = angle(p[s.shoulder], p[s.elbow], p[s.wrist]);
+    const elbow = jointAngle(p, s.shoulder, s.elbow, s.wrist);
     if (tiltFromHorizontal(p[s.shoulder], p[s.hip]) < 45) issues.push("not_upright");
     return { value: elbow, issues };
   },
@@ -156,7 +156,7 @@ const PULLUP: RepExercise = {
     const side = bestSide(p, (s) => [s.shoulder, s.elbow, s.wrist]);
     const s = side === "left" ? SIDE_L : SIDE_R;
     if (!allVisible(p, [s.shoulder, s.elbow, s.wrist])) return null;
-    const elbow = angle(p[s.shoulder], p[s.elbow], p[s.wrist]);
+    const elbow = jointAngle(p, s.shoulder, s.elbow, s.wrist);
     let depthOk: boolean | undefined;
     if (visible(p, LM.nose)) {
       const wristY = visible(p, LM.leftWrist) && visible(p, LM.rightWrist)
@@ -194,9 +194,9 @@ function legIssues(p: Pose, shoulder: number, minKnee: number, minLine: number):
   const leg = bestLeg(p);
   if (!legSeen(p, leg.knee)) return ["legs_hidden"];
   if (!legSeen(p, leg.ankle) || !legSeen(p, leg.hip)) return [];
-  if (angle(p[leg.hip], p[leg.knee], p[leg.ankle]) < minKnee) return ["knees_down"];
+  if (jointAngle(p, leg.hip, leg.knee, leg.ankle) < minKnee) return ["knees_down"];
   const sh = visible(p, leg.shoulder) ? leg.shoulder : shoulder;
-  if (angle(p[sh], p[leg.hip], p[leg.ankle]) < minLine) return ["hips_sagging"];
+  if (jointAngle(p, sh, leg.hip, leg.ankle) < minLine) return ["hips_sagging"];
   return [];
 }
 

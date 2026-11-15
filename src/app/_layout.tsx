@@ -1,4 +1,6 @@
 import { Stack } from "expo-router";
+import { useEffect } from "react";
+import { warmupPose } from "../../modules/pose-camera";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -8,6 +10,8 @@ import { IntroSplash } from "@/ui/IntroSplash";
 import { UpdateBanner } from "@/ui/UpdateBanner";
 
 export default function RootLayout() {
+  // Load the pose model while the intro plays, so the first workout opens instantly.
+  useEffect(() => warmupPose(), []);
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: C.bg }}>
     <SafeAreaProvider>
