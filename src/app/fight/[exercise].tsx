@@ -45,10 +45,8 @@ export default function Fight() {
   useEffect(() => {
     if (phase !== "intro") return;
     haptic.tick();
-    const t = setTimeout(() => {
-      setStartedAt(Date.now());
-      setPhase("fight");
-    }, 2200);
+    // The clock starts on your first rep, so camera setup never eats your time.
+    const t = setTimeout(() => setPhase("fight"), 2200);
     return () => clearTimeout(t);
   }, [phase]);
 
@@ -80,6 +78,7 @@ export default function Fight() {
   const onUnit = (perfect: boolean) => {
     if (phase !== "fight") return;
     if (perfect) perfectRef.current++;
+    if (startedAt === null) setStartedAt(Date.now());
     setHits((h) => h + 1);
     setDoneTotal((d) => d + 1);
     setDone((d) => {
@@ -148,7 +147,7 @@ export default function Fight() {
       key={round}
       round={r}
       active={phase === "fight"}
-      title={`${Math.ceil(left)}s`}
+      title={startedAt ? `${Math.ceil(left)}s` : "Ready"}
       onUnit={onUnit}
       top={(pose) => (
         <Arena

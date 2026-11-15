@@ -13,7 +13,7 @@ import { useIslandSpace } from "@/ui/IslandTabBar";
 import { Pulse, Tap } from "@/ui/motion";
 import { C, F, R } from "@/ui/theme";
 
-const X = ["18%", "50%", "82%", "50%"]; // winding path
+const ALIGN = ["flex-start", "center", "flex-end", "center"] as const; // winding path
 
 /** World map: mobs and a boss per world. Beat each to unlock the next. */
 export default function AdventureTab() {
@@ -63,8 +63,8 @@ export default function AdventureTab() {
                 </Tap>
               );
               return (
-                <View key={l.id} style={[s.slot, { paddingLeft: X[i % 4] as unknown as number }]}>
-                  <View style={{ alignItems: "center", transform: [{ translateX: -size / 2 }] }}>
+                <View key={l.id} style={[s.slot, { alignItems: ALIGN[i % 4] }]}>
+                  <View style={{ alignItems: "center" }}>
                     {isNext ? <Pulse min={0.92} ms={900}>{node}</Pulse> : node}
                     <View style={{ flexDirection: "row", marginTop: 4 }}>
                       {[1, 2, 3].map((k) => <MaterialCommunityIcons key={k} name={k <= stars ? "star" : "star-outline"} size={14} color={k <= stars ? C.warn : C.faint} />)}
@@ -108,7 +108,7 @@ const s = StyleSheet.create({
   stars: { flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.surface, paddingHorizontal: 12, height: 36, borderRadius: R.pill, borderWidth: 1, borderColor: C.line },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   world: { borderLeftWidth: 4, paddingLeft: 12, paddingVertical: 4, marginTop: 10 },
-  slot: { height: 116, justifyContent: "center" },
+  slot: { height: 116, justifyContent: "center", paddingHorizontal: 34 },
   node: { alignItems: "center", justifyContent: "center", borderWidth: 3 },
   lock: { position: "absolute", bottom: -2, right: -2 },
   sheet: { position: "absolute", left: 14, right: 14, backgroundColor: C.surface, borderRadius: R.lg, padding: 16, gap: 12, borderWidth: 1, borderColor: C.line, shadowColor: "#000", shadowOpacity: 0.5, shadowRadius: 20, elevation: 14 },

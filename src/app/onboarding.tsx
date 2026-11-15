@@ -1,7 +1,7 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import Animated, { FadeIn, SlideInRight, SlideOutLeft } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Body, FitnessLevel, ftInToCm, LEVEL_TEXT, lbToKg, placementRating } from "@/domain/placement";
@@ -60,7 +60,7 @@ export default function Onboarding() {
   const preview = rankFor(placementRating(body(), null));
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={[s.root, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
+    <View style={[s.root, { paddingTop: insets.top + 12, paddingBottom: insets.bottom + 16 }]}>
       <View style={s.top}>
         {i > 0 ? (
           <Tap onPress={back} style={s.back}><MaterialCommunityIcons name="arrow-left" size={22} color={C.text} /></Tap>
@@ -84,13 +84,13 @@ export default function Onboarding() {
 
         {step === "name" && (
           <Q title="What should we call you?" hint="Friends and opponents see this.">
-            <TextInput value={name} onChangeText={setName} placeholder="Your name" placeholderTextColor={C.faint} style={s.input} maxLength={16} autoFocus />
+            <TextInput value={name} onChangeText={setName} placeholder="Your name" placeholderTextColor={C.faint} style={s.input} maxLength={16} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
           </Q>
         )}
 
         {step === "age" && (
           <Q title="How old are you?" hint="Only used to estimate your level if you skip the test.">
-            <TextInput value={age} onChangeText={(t) => setAge(t.replace(/\D/g, ""))} placeholder="Age" placeholderTextColor={C.faint} keyboardType="number-pad" style={s.input} maxLength={3} autoFocus />
+            <TextInput value={age} onChangeText={(t) => setAge(t.replace(/\D/g, ""))} placeholder="Age" placeholderTextColor={C.faint} keyboardType="number-pad" style={s.input} maxLength={3} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
           </Q>
         )}
 
@@ -98,7 +98,7 @@ export default function Onboarding() {
           <Q title="Your weight?" hint="Stays on your phone.">
             <Units us={us} setUs={setUs} />
             <View style={s.row}>
-              <TextInput value={weight} onChangeText={(t) => setWeight(t.replace(/[^\d.]/g, ""))} placeholder={us ? "170" : "77"} placeholderTextColor={C.faint} keyboardType="decimal-pad" style={[s.input, { flex: 1 }]} maxLength={5} autoFocus />
+              <TextInput value={weight} onChangeText={(t) => setWeight(t.replace(/[^\d.]/g, ""))} placeholder={us ? "170" : "77"} placeholderTextColor={C.faint} keyboardType="decimal-pad" style={[s.input, { flex: 1 }]} maxLength={5} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
               <Text style={s.unit}>{us ? "lb" : "kg"}</Text>
             </View>
           </Q>
@@ -109,14 +109,14 @@ export default function Onboarding() {
             <Units us={us} setUs={setUs} />
             {us ? (
               <View style={s.row}>
-                <TextInput value={ft} onChangeText={(t) => setFt(t.replace(/\D/g, ""))} placeholder="5" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={1} autoFocus />
+                <TextInput value={ft} onChangeText={(t) => setFt(t.replace(/\D/g, ""))} placeholder="5" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={1} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
                 <Text style={s.unit}>ft</Text>
-                <TextInput value={inch} onChangeText={(t) => setInch(t.replace(/\D/g, ""))} placeholder="10" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={2} />
+                <TextInput value={inch} onChangeText={(t) => setInch(t.replace(/\D/g, ""))} placeholder="10" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={2} returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
                 <Text style={s.unit}>in</Text>
               </View>
             ) : (
               <View style={s.row}>
-                <TextInput value={cm} onChangeText={(t) => setCm(t.replace(/\D/g, ""))} placeholder="178" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={3} autoFocus />
+                <TextInput value={cm} onChangeText={(t) => setCm(t.replace(/\D/g, ""))} placeholder="178" placeholderTextColor={C.faint} keyboardType="number-pad" style={[s.input, { flex: 1 }]} maxLength={3} autoFocus returnKeyType="next" onSubmitEditing={() => valid[step] && next()} />
                 <Text style={s.unit}>cm</Text>
               </View>
             )}
@@ -145,9 +145,7 @@ export default function Onboarding() {
             </View>
           </Q>
         )}
-      </Animated.View>
-
-      <Animated.View entering={FadeIn} style={{ gap: 10 }}>
+        <Animated.View entering={FadeIn} style={{ gap: 10, marginTop: 24 }}>
         {step === "test" ? (
           <>
             <Button label="Take the 60-second test" icon="arm-flex" onPress={takeTest} />
@@ -156,8 +154,10 @@ export default function Onboarding() {
         ) : (
           <Button label={step === "hello" ? "Let's go" : "Next"} icon="arrow-right" onPress={next} disabled={!valid[step]} />
         )}
+        </Animated.View>
       </Animated.View>
-    </KeyboardAvoidingView>
+
+    </View>
   );
 }
 
@@ -186,7 +186,7 @@ const s = StyleSheet.create({
   back: { width: 44, height: 44, borderRadius: 22, backgroundColor: C.surface, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: C.line },
   dots: { flexDirection: "row", gap: 6, alignItems: "center" },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.surface2 },
-  body: { flex: 1, justifyContent: "center" },
+  body: { flex: 1, justifyContent: "flex-start", paddingTop: "18%" },
   input: { height: 64, borderRadius: R.md, backgroundColor: C.surface, borderWidth: 1, borderColor: C.line, color: C.text, paddingHorizontal: 18, fontSize: 26, fontWeight: "900" },
   row: { flexDirection: "row", alignItems: "center", gap: 10 },
   unit: { color: C.muted, fontSize: 20, fontWeight: "800" },
