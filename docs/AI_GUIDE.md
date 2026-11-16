@@ -12,7 +12,7 @@ All the camera work happens on the phone. No account, no payment.
 ## Ask the person first
 
 1. Do you want to **use** the app (install it on your Android phone) or **work on** the code?
-2. Which phone do you have? (Android gets the app. iPhone can use it as a home-screen web app once web hosting is set up: see `SETUP.md` step 3.)
+2. Which phone do you have? (Android gets the app. iPhone uses the home-screen web app: open https://f0rger123.github.io/weightrank/ in Safari → Share → Add to Home Screen.)
 3. Is this a Windows, Mac or Linux computer?
 4. Are you comfortable running commands in a terminal?
 

@@ -2,8 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { LayoutChangeEvent, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import {
-  getCameraPermission, PoseCameraView, poseCameraAvailable, requestCameraPermission,
+  getCameraPermission, PoseCameraView, poseCameraAvailable, PoseFrame, requestCameraPermission,
 } from "../../modules/pose-camera";
+import { LandmarkSmoother } from "@/domain/filter";
 import { Pose } from "@/domain/pose";
 import { cycle, pushupPose } from "@/domain/sim";
 import { C, F, R } from "./theme";
@@ -37,6 +38,7 @@ export function PoseCamera({ facing, active, pose, tint, onFrame }: Props) {
   const [frame, setFrame] = useState({ w: 3, h: 4 });
   const [perm, setPerm] = useState<"unknown" | "granted" | "denied">("unknown");
   const [status, setStatus] = useState<string | null>(null);
+  const smoothers = useRef<Smoothers>({ img: new LandmarkSmoother(), world: new LandmarkSmoother() });
 
   useEffect(() => {
     if (!poseCameraAvailable) return;
@@ -78,7 +80,12 @@ export function PoseCamera({ facing, active, pose, tint, onFrame }: Props) {
         onPose={(e) => {
           const f = e.nativeEvent;
           if (f.width && f.height && (f.width !== frame.w || f.height !== frame.h)) setFrame({ w: f.width, h: f.height });
-          onFrame(f.landmarks.length ? unflatten(f.landmarks) : null, f.t);
+          if (!f.landmarks.length) {
+            smoothers.current.img.reset();
+            smoothers.current.world.reset();
+            return onFrame(null, f.t);
+          }
+          onFrame(toPose(smoothFrame(f, smoothers.current)), f.t);
         }}
       />
     );
@@ -118,6 +125,28 @@ export function PoseCamera({ facing, active, pose, tint, onFrame }: Props) {
       )}
     </View>
   );
+}
+
+type Smoothers = { img: LandmarkSmoother; world: LandmarkSmoother };
+
+/** Smooth x/y/z of every point (visibility is left as-is). */
+function smoothFrame(f: PoseFrame, sm: Smoothers): { img: number[]; world?: number[] } {
+  const xyz: number[] = [];
+  for (let i = 0; i + 3 < f.landmarks.length; i += 4) xyz.push(f.landmarks[i], f.landmarks[i + 1], f.landmarks[i + 2]);
+  const s = sm.img.smooth(xyz, f.t);
+  const img: number[] = [];
+  for (let i = 0, j = 0; i + 3 < f.landmarks.length; i += 4, j += 3) img.push(s[j], s[j + 1], s[j + 2], f.landmarks[i + 3]);
+  return { img, world: f.world?.length ? sm.world.smooth(f.world, f.t) : undefined };
+}
+
+function toPose({ img, world }: { img: number[]; world?: number[] }): Pose {
+  const p = unflatten(img);
+  if (world) {
+    const w = [];
+    for (let i = 0; i + 2 < world.length; i += 3) w.push({ x: world[i], y: world[i + 1], z: world[i + 2] });
+    p.world = w;
+  }
+  return p;
 }
 
 function unflatten(a: number[]): Pose {
@@ -173,7 +202,7 @@ const s = StyleSheet.create({
   notice: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, alignItems: "center", justifyContent: "center", padding: 32, gap: 16 },
   btn: { backgroundColor: C.accent, paddingHorizontal: 22, paddingVertical: 12, borderRadius: R.pill },
   btnText: { color: C.accentInk, fontWeight: "800" },
-  status: { position: "absolute", bottom: 12, left: 12, right: 12, backgroundColor: "#000a", padding: 10, borderRadius: R.sm },
+  status: { position: "absolute", top: 130, left: 16, right: 16, backgroundColor: "#000d", padding: 12, borderRadius: R.sm, borderWidth: 1, borderColor: C.warn },
   statusText: { color: C.warn, fontSize: 12 },
   sim: { position: "absolute", top: 190, alignSelf: "center", alignItems: "center", zIndex: 5 },
   chip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: R.pill, backgroundColor: C.surface2 },

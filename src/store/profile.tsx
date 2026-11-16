@@ -3,6 +3,8 @@ import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, 
 import {
   ACHIEVEMENTS, dailyQuests, dayKey, questProgress, Session, sessionsOn, xpFor,
 } from "@/domain/progress";
+import type { Body } from "@/domain/placement";
+import { setHapticsEnabled } from "@/ui/haptics";
 import { applyDelta, rankFor, RankId, RANKS, ratingDelta, START_RATING } from "@/domain/rating";
 
 /** Everything the app remembers, stored on the phone. */
@@ -17,12 +19,29 @@ export type Profile = {
   /** Quest ids whose XP has been paid out. */
   questsPaid: string[];
   achievements: string[];
-  settings: { facing: "front" | "back"; voice: boolean };
+  settings: { facing: "front" | "back"; voice: boolean; vibrate?: boolean };
   /** Random id for online play; never tied to an account. */
   playerId: string;
   /** Name shown to friends and online opponents. */
   name: string;
+  /** Finished the first-launch setup (body details + placement). */
+  onboarded?: boolean;
+  body?: Body;
+  /** Push-ups in the placement test, null if skipped. */
+  placementReps?: number | null;
+  /** Best daily streak seen, for the streak celebration. */
+  lastStreakCelebrated?: number;
+  /** Adventure: level id -> best stars. */
+  campaign?: Record<string, number>;
+  /** Last local change (ms), for cloud sync. */
+  updatedAt?: number;
+  /** Account this profile was last synced with. */
+  syncedUid?: string;
 };
+
+function rankForId(r: number): RankId {
+  return rankFor(r).id;
+}
 
 function randomId(): string {
   return Array.from({ length: 12 }, () => "abcdefghijkmnpqrstuvwxyz23456789"[Math.floor(Math.random() * 32)]).join("");
@@ -59,9 +78,14 @@ type Ctx = {
   profile: Profile;
   ready: boolean;
   /** Record a finished session; pays out XP, quests and achievements. */
-  saveSession(s: Session, duel?: { opponentRating: number }, extra?: { adventureCleared?: boolean }): SaveResult;
+  saveSession(s: Session, duel?: { opponentRating: number }, extra?: { adventureCleared?: boolean; level?: { id: string; stars: number } }): SaveResult;
   setSettings(patch: Partial<Profile["settings"]>): void;
   setName(name: string): void;
+  /** First-launch setup: body details and placement result set the starting rating. */
+  completeOnboarding(body: Body, rating: number, placementReps: number | null, name?: string): void;
+  patch(p: Partial<Profile>): void;
+  /** Replace the whole profile with one from the cloud (keeps its timestamp). */
+  replace(p: Profile): void;
   resetAll(): void;
 };
 
@@ -87,7 +111,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       .finally(() => setReady(true));
   }, []);
 
-  const commit = useCallback((next: Profile) => {
+  useEffect(() => setHapticsEnabled(profile.settings.vibrate !== false), [profile.settings.vibrate]);
+
+  const commit = useCallback((next: Profile, touch = true) => {
+    if (touch) next = { ...next, updatedAt: Date.now() };
     ref.current = next;
     setProfile(next);
     AsyncStorage.setItem(KEY, JSON.stringify(next)).catch(() => {});
@@ -124,7 +151,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     const newIdx = RANKS.indexOf(newRank);
     const peakRank = newIdx > oldIdx ? newRank.id : p.peakRank;
     if (newIdx > oldIdx) result.rankUp = newRank.id;
-    const adventureStage = p.adventureStage + (extra?.adventureCleared ? 1 : 0);
+    const campaign = { ...(p.campaign ?? {}) };
+    if (extra?.level) campaign[extra.level.id] = Math.max(campaign[extra.level.id] ?? 0, extra.level.stars);
+    const cleared = Object.values(campaign).filter((v) => v > 0).length;
+    const adventureStage = Math.max(p.adventureStage + (extra?.adventureCleared && !extra.level ? 1 : 0), cleared + 1);
 
     const stats = { sessions, rating, peakRank, adventureStage };
     const achievements = [...p.achievements];
@@ -135,7 +165,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       }
     }
     result.xpGained = xp - p.xp;
-    commit({ ...p, rating, games, peakRank, xp, sessions, questsPaid, achievements, adventureStage });
+    commit({ ...p, rating, games, peakRank, xp, sessions, questsPaid, achievements, adventureStage, campaign });
     return result;
   }, [commit]);
 
@@ -148,12 +178,23 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     commit({ ...ref.current, name: name.trim().slice(0, 16) || ref.current.name });
   }, [commit]);
 
+  const completeOnboarding = useCallback((body: Body, rating: number, placementReps: number | null, name?: string) => {
+    const p = ref.current;
+    // Someone who has already played keeps their earned rating unless they retook the test.
+    const keep = p.games > 0 && placementReps === null;
+    const r = keep ? p.rating : rating;
+    commit({ ...p, body, placementReps, onboarded: true, rating: r, name: name?.trim() || p.name, peakRank: keep ? p.peakRank : rankForId(r) });
+  }, [commit]);
+
+  const patch = useCallback((x: Partial<Profile>) => commit({ ...ref.current, ...x }), [commit]);
+  const replace = useCallback((x: Profile) => commit({ ...NEW_PROFILE, ...x }, false), [commit]);
+
   const resetAll = useCallback(() => {
     const p = ref.current;
     commit({ ...NEW_PROFILE, playerId: p.playerId, name: p.name });
   }, [commit]);
 
-  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, resetAll }), [profile, ready, saveSession, setSettings, setName, resetAll]);
+  const value = useMemo(() => ({ profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, replace, resetAll }), [profile, ready, saveSession, setSettings, setName, completeOnboarding, patch, replace, resetAll]);
   return <ProfileContext.Provider value={value}>{children}</ProfileContext.Provider>;
 }
 

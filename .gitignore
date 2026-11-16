@@ -46,3 +46,5 @@ modules/*/android/build/
 web.log
 .claude/launch.json
 release/
+firebase-debug.log
+*-debug.log

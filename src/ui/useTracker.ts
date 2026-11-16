@@ -37,6 +37,7 @@ export function useTracker(
   const lastUi = useRef(0);
   const flash = useRef<{ e: RepEvent; until: number } | null>(null);
   const lastWholeSecond = useRef(0);
+  const issueSince = useRef(new Map<string, number>());
   const optsRef = useRef(opts);
   optsRef.current = opts;
   const [pose, setPose] = useState<Pose | null>(null);
@@ -86,7 +87,9 @@ export function useTracker(
       lastUi.current = t;
       if (flash.current && t > flash.current.until) flash.current = null;
       setPose(p);
-      setView(toView(c, flash.current?.e ?? null));
+      const v = toView(c, flash.current?.e ?? null);
+      v.issues = stable(v.issues, t, issueSince.current);
+      setView(v);
     }
   }, [ex]);
 
@@ -100,6 +103,14 @@ export function useTracker(
   }, [ex]);
 
   return useMemo(() => ({ exercise: ex, pose, view, feed, reset }), [ex, pose, view, feed, reset]);
+}
+
+/** Keep only issues seen continuously for ISSUE_SHOW_MS, so one bad frame doesn't flash a tip. */
+const ISSUE_SHOW_MS = 500;
+function stable(issues: TrackerView["issues"], t: number, since: Map<string, number>): TrackerView["issues"] {
+  for (const k of [...since.keys()]) if (!issues.includes(k as never)) since.delete(k);
+  for (const i of issues) if (!since.has(i)) since.set(i, t);
+  return issues.filter((i) => t - (since.get(i) ?? t) >= ISSUE_SHOW_MS);
 }
 
 function toView(c: RepCounter | HoldTimer, flash: RepEvent | null): TrackerView {

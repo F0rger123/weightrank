@@ -4,10 +4,10 @@ Everything else is built. These switch on the parts that need your accounts. Not
 
 | # | What | Why | Status |
 |---|---|---|---|
-| 1 | **Install the APK** from [Releases](https://github.com/F0rger123/weightrank/releases/latest) on your Pixel | Test the camera tracking for real | ⬜ |
+| 1 | **Install the APK** from [Releases](https://github.com/F0rger123/weightrank/releases/latest) on your Pixel. From 0.3.0 on, the app updates itself: it downloads new versions on launch and asks you to tap Install | Test the camera tracking for real | ⬜ |
 | 2 | **Free Supabase project** for online play (or say which existing project to use) | Real-player matchmaking and live friend rooms | ⬜ |
-| 3 | **Free web hosting** (Cloudflare Pages, Netlify, or make the repo public for GitHub Pages) | iPhone version + https invite links that open anywhere | ⬜ |
-| 4 | **Free Expo account** (expo.dev/signup), then `npx eas-cli login` | Updates that arrive silently, no reinstall | ⬜ |
+| 3 | Web hosting | iPhone version + https invite links | ✅ live at https://f0rger123.github.io/weightrank/ |
+| 4 | Optional: free Expo account (expo.dev/signup) | Would make small updates install with no tap at all | optional |
 
 ## 2. Supabase (online matchmaking)
 

@@ -32,6 +32,7 @@ type Props = {
 export function WorkoutStage({ tracker, facing, onFlip, onClose, title, big, top, bottom, cameraActive = true }: Props) {
   const insets = useSafeAreaInsets();
   const v = tracker.view;
+  const gaugeTop = top ? { top: "48%" as const } : null;
   const issue = v.tracking ? v.issues[0] : v.issues[0] ?? "body_hidden";
   const flash = v.flash;
   const tint = flash?.type === "reject" ? C.bad : issue ? C.warn : C.accent;
@@ -55,7 +56,7 @@ export function WorkoutStage({ tracker, facing, onFlip, onClose, title, big, top
       {top && <View style={[s.topExtra, { top: insets.top + 64 }]}>{top}</View>}
 
       {v.kind === "reps" && (
-        <View style={s.gauge} pointerEvents="none">
+        <View style={[s.gauge, gaugeTop]} pointerEvents="none">
           <RomGauge rom={v.rom} peak={v.romPeak} />
         </View>
       )}
@@ -100,7 +101,7 @@ const s = StyleSheet.create({
   topBar: { position: "absolute", left: 0, right: 0, top: 0, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16 },
   iconBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: "#0008", alignItems: "center", justifyContent: "center" },
   topExtra: { position: "absolute", left: 16, right: 16 },
-  gauge: { position: "absolute", right: 18, top: "30%" },
+  gauge: { position: "absolute", right: 18, top: "32%" },
   bottom: { position: "absolute", left: 0, right: 0, bottom: 0, paddingHorizontal: 16, gap: 10 },
   bigRow: { alignItems: "center" },
   big: { fontSize: 128, lineHeight: 136, fontWeight: "900", fontStyle: "italic", color: C.text, letterSpacing: -4, textShadowColor: "#000a", textShadowRadius: 12 },

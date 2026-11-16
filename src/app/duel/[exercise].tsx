@@ -14,13 +14,14 @@ import { WEB_URL } from "@/lib/config";
 import { findMatch, Match, onlineConfigured } from "@/lib/online";
 import { SaveResult, useProfile } from "@/store/profile";
 import { Button, Card, RankBadge } from "@/ui/bits";
+import { Confetti, RankReveal, VsIntro } from "@/ui/celebrate";
 import { haptic } from "@/ui/haptics";
 import { Appear, Pop, Pulse } from "@/ui/motion";
 import { C, F, R } from "@/ui/theme";
 import { useTracker } from "@/ui/useTracker";
 import { WorkoutStage } from "@/ui/WorkoutStage";
 
-type Phase = "matching" | "ready" | "countdown" | "live" | "done";
+type Phase = "matching" | "intro" | "ready" | "countdown" | "live" | "done";
 type Mode = "ranked" | "challenge" | "room";
 
 type Opponent = {
@@ -33,7 +34,7 @@ type Opponent = {
 };
 
 /** How long ranked waits for a real player before offering a bot. */
-const HUMAN_WAIT_S = 15;
+const HUMAN_WAIT_S = 10;
 
 /** One 60-second duel: ranked (real player or fair bot), a friend's challenge, or a live friend room. */
 export default function DuelRun() {
@@ -56,6 +57,7 @@ export default function DuelRun() {
   const [oppLeft, setOppLeft] = useState(false);
   const [result, setResult] = useState<{ save: SaveResult; mine: number; theirs: number } | null>(null);
   const match = useRef<Match | null>(null);
+  const afterIntro = useRef<Phase>("ready");
   const startedAt = useRef(0);
   const readySince = useRef<number | null>(null);
   const tracker = useTracker(id, { voice: profile.settings.voice, enabled: phase === "live" });
@@ -64,7 +66,8 @@ export default function DuelRun() {
   const useBot = () => {
     const b = matchBot(profile.rating, Date.now() & 0x7fffffff, id);
     setOpp({ kind: "bot", name: b.name, rating: b.rating, target: b.target, repTimes: b.repTimes });
-    setPhase("ready");
+    afterIntro.current = "ready";
+    setPhase("intro");
   };
 
   // ---- Matching ----
@@ -73,7 +76,8 @@ export default function DuelRun() {
     if (mode === "challenge") {
       if (!challenge) return;
       setOpp({ kind: "ghost", name: challenge.name, rating: 0, target: challenge.reps, repTimes: ghostRepTimes(challenge.reps) });
-      setPhase("ready");
+      afterIntro.current = "ready";
+      setPhase("intro");
       return;
     }
     if (!onlineConfigured) {
@@ -96,7 +100,8 @@ export default function DuelRun() {
       m.onLeft(() => setOppLeft(true));
       setOpp({ kind: "human", name: m.opponent.name, rating: m.opponent.rating });
       haptic.win();
-      setPhase("countdown");
+      afterIntro.current = "countdown";
+      setPhase("intro");
     });
     const tick = setInterval(() => setWaited((w) => w + 1), 1000);
     return () => {
@@ -111,6 +116,14 @@ export default function DuelRun() {
   }, [waited]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => () => match.current?.close(), []);
+
+  // ---- VS intro ----
+  useEffect(() => {
+    if (phase !== "intro") return;
+    haptic.tick();
+    const t = setTimeout(() => setPhase(afterIntro.current), 2200);
+    return () => clearTimeout(t);
+  }, [phase]);
 
   // ---- Ready: hold the top position for a second (bot / ghost rounds) ----
   const pose = tracker.pose;
@@ -251,12 +264,26 @@ export default function DuelRun() {
     );
   }
 
+  if (phase === "intro" && opp) {
+    return (
+      <View style={[s.center, { paddingTop: insets.top }]}>
+        <Text style={F.label}>{ranked ? "Ranked" : mode === "room" ? "Friend duel" : "Challenge"} · {ex.name} · 60 s</Text>
+        <VsIntro
+          me={profile.name}
+          them={opp.name}
+          sub={opp.kind === "human" ? `Live opponent · ${opp.rating}` : opp.kind === "bot" ? `Bot · ${opp.rating}` : `Beat ${opp.target} reps`}
+        />
+      </View>
+    );
+  }
+
   if (phase === "done" && result && opp) {
     const outcome = outcomeOf(result.mine, result.theirs);
     const d = result.save.ratingDelta ?? 0;
     const col = outcome === "win" ? C.good : outcome === "loss" ? C.bad : C.text;
     return (
       <View style={[s.center, { gap: 16, paddingTop: insets.top, paddingBottom: insets.bottom + 16 }]}>
+        {outcome === "win" && <Confetti count={80} />}
         <Animated.Text entering={ZoomIn.springify().damping(10)} style={[F.display, { fontSize: 58, color: col }]}>
           {outcome === "win" ? "VICTORY" : outcome === "loss" ? "DEFEAT" : "DRAW"}
         </Animated.Text>
@@ -280,7 +307,7 @@ export default function DuelRun() {
             </Text>
           </Appear>
         )}
-        {result.save.rankUp && <Appear i={3}><Text style={[F.h2, { color: C.accent }]}>Promoted to {rankFor(profile.rating).name}!</Text></Appear>}
+        {result.save.rankUp && <RankReveal rank={rankFor(profile.rating)} label="Promoted!" />}
         <Appear i={3}>
           <Text style={F.small}>
             +{result.save.xpGained} XP{tracker.view.rejected ? ` · ${tracker.view.rejected} ${tracker.view.rejected === 1 ? "rep" : "reps"} didn't count` : ""}

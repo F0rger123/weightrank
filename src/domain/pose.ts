@@ -6,7 +6,13 @@
  */
 
 export type Landmark = { x: number; y: number; z?: number; visibility?: number };
-export type Pose = Landmark[];
+export type Point3 = { x: number; y: number; z: number };
+/**
+ * Image landmarks (normalized, for drawing and "is it in frame") plus optional
+ * world landmarks in meters. Angles prefer world landmarks: they don't change
+ * with camera angle or distance, so depth is judged the same everywhere.
+ */
+export type Pose = Landmark[] & { world?: Point3[] };
 
 export const LM = {
   nose: 0,
@@ -60,6 +66,23 @@ export function angle(a: Landmark, b: Landmark, c: Landmark): number {
   return (Math.acos(cos) * 180) / Math.PI;
 }
 
+/** 3D interior angle at b, in degrees. */
+export function angle3(a: Point3, b: Point3, c: Point3): number {
+  const v1 = [a.x - b.x, a.y - b.y, a.z - b.z];
+  const v2 = [c.x - b.x, c.y - b.y, c.z - b.z];
+  const dot = v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  const m = Math.hypot(...v1) * Math.hypot(...v2);
+  if (m === 0) return 180;
+  return (Math.acos(Math.min(1, Math.max(-1, dot / m))) * 180) / Math.PI;
+}
+
+/** Joint angle at b: true 3D when world landmarks are available, else from the image. */
+export function jointAngle(p: Pose, a: number, b: number, c: number): number {
+  const w = p.world;
+  if (w && w[a] && w[b] && w[c]) return angle3(w[a], w[b], w[c]);
+  return angle(p[a], p[b], p[c]);
+}
+
 /** Angle of the segment a->b from horizontal, in degrees (0 = flat, 90 = vertical). */
 export function tiltFromHorizontal(a: Landmark, b: Landmark): number {
   const dx = Math.abs(b.x - a.x);
@@ -98,4 +121,23 @@ export function bestSide(p: Pose, joints: (s: SideJoints) => number[]): Side {
   const l = visibilityScore(p, joints(SIDE.left));
   const r = visibilityScore(p, joints(SIDE.right));
   return l >= r ? "left" : "right";
+}
+
+/**
+ * Legs on the floor, side-on, often get low visibility scores even when they're
+ * clearly in the picture. Accept a lower score as long as the point is inside the frame.
+ */
+export const LEG_VISIBILITY = 0.2;
+
+export function legSeen(p: Pose, i: number): boolean {
+  const l = p[i];
+  if (!l) return false;
+  const inFrame = l.x > -0.03 && l.x < 1.03 && l.y > -0.03 && l.y < 1.03;
+  return inFrame && (l.visibility ?? 1) >= LEG_VISIBILITY;
+}
+
+/** Pick the leg the camera sees best, independently of which arm it sees best. */
+export function bestLeg(p: Pose): SideJoints {
+  const score = (s: SideJoints) => (p[s.knee]?.visibility ?? 0) + (p[s.ankle]?.visibility ?? 0) + (p[s.hip]?.visibility ?? 0) * 0.5;
+  return score(SIDE.left) >= score(SIDE.right) ? SIDE.left : SIDE.right;
 }

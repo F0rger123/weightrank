@@ -47,3 +47,24 @@ function alpha(cutoff: number, dt: number) {
   const tau = 1 / (2 * Math.PI * cutoff);
   return 1 / (1 + tau / dt);
 }
+
+/**
+ * Smooths every landmark coordinate with its own One Euro filter. Removes the
+ * shimmer in raw pose output so form checks and the skeleton don't flicker,
+ * while fast movement still comes through with little lag.
+ */
+export class LandmarkSmoother {
+  private fs: OneEuroFilter[] = [];
+  constructor(private minCutoff = 2, private beta = 0.05) {}
+  reset() {
+    this.fs = [];
+  }
+  smooth(values: number[], t: number): number[] {
+    const out = new Array<number>(values.length);
+    for (let i = 0; i < values.length; i++) {
+      const f = this.fs[i] ?? (this.fs[i] = new OneEuroFilter(this.minCutoff, this.beta));
+      out[i] = f.filter(values[i], t);
+    }
+    return out;
+  }
+}

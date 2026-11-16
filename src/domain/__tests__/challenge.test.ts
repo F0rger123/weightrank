@@ -53,7 +53,7 @@ vi.mock("expo-constants", () => ({ default: { expoConfig: { extra: {} } } }));
 
 describe("online pairing", () => {
   it("pairs oldest players two by two, and both sides agree", async () => {
-    const { pairFor } = await import("../../lib/online");
+    const { pairFor } = await import("../pairing");
     const m = [
       { id: "c", name: "", rating: 1000, t: 3 },
       { id: "a", name: "", rating: 1000, t: 1 },

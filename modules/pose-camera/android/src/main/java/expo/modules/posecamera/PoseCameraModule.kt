@@ -18,6 +18,12 @@ class PoseCameraModule : Module() {
       Permissions.getPermissionsWithPermissionsManager(appContext.permissions, promise, Manifest.permission.CAMERA)
     }
 
+    /** Load the pose model in the background so the first workout opens fast. */
+    Function("warmup") {
+      appContext.reactContext?.let { PoseEngine.warmup(it) }
+      Unit
+    }
+
     View(PoseCameraView::class) {
       Events("onPose", "onStatus")
 

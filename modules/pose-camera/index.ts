@@ -7,6 +7,8 @@ export type PoseFrame = {
   t: number;
   /** 33 landmarks flattened as [x, y, z, visibility, ...]; empty when no person is seen. */
   landmarks: number[];
+  /** 33 world landmarks in meters, flattened as [x, y, z, ...]. */
+  world?: number[];
   width: number;
   height: number;
   fps: number;
@@ -28,6 +30,7 @@ const Native =
     ? requireOptionalNativeModule<{
         requestCameraPermission(): Promise<PermissionResponse>;
         getCameraPermission(): Promise<PermissionResponse>;
+        warmup(): void;
       }>("PoseCamera")
     : null;
 
@@ -46,4 +49,11 @@ export async function requestCameraPermission(): Promise<boolean> {
 export async function getCameraPermission(): Promise<boolean> {
   if (!Native) return false;
   return (await Native.getCameraPermission()).granted;
+}
+
+/** Start loading the pose model in the background (call when the app opens). */
+export function warmupPose() {
+  try {
+    Native?.warmup();
+  } catch {}
 }

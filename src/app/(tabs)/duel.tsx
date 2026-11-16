@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useIslandSpace } from "@/ui/IslandTabBar";
 import { RANK_CAP } from "@/domain/bots";
 import { EXERCISES, ExerciseId } from "@/domain/exercises";
 import { rankFor, rankProgress, RANKS } from "@/domain/rating";
@@ -15,6 +16,7 @@ export const DUEL_EXERCISES: ExerciseId[] = ["pushup", "squat", "dip", "pullup"]
 
 export default function DuelTab() {
   const insets = useSafeAreaInsets();
+  const bottomSpace = useIslandSpace();
   const { profile } = useProfile();
   const [exercise, setExercise] = useState<ExerciseId>("pushup");
   const rank = rankFor(profile.rating);
@@ -23,7 +25,7 @@ export default function DuelTab() {
   const wins = duels.filter((x) => x.outcome === "win").length;
 
   return (
-    <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 16 }]}>
+    <ScrollView contentContainerStyle={[s.page, { paddingTop: insets.top + 16, paddingBottom: bottomSpace }]}>
       <Text style={F.h1}>Ranked duel</Text>
       <Text style={F.small}>60 seconds. Most clean reps wins. Only full-depth reps count, for you and for them.</Text>
 
@@ -54,10 +56,10 @@ export default function DuelTab() {
 
       <Appear i={2} style={{ gap: 10 }}>
         <Button label="Find opponent" icon="sword-cross" onPress={() => router.push({ pathname: "/duel/[exercise]", params: { exercise } })} />
-        <Button label="Challenge a friend" icon="account-multiple-plus" kind="ghost" onPress={() => router.push("/challenge")} />
+        <Button label="Friends & live rooms" icon="account-group" kind="ghost" onPress={() => router.push("/friends")} />
         <View style={s.online}>
           <View style={[s.dot, { backgroundColor: onlineConfigured ? C.good : C.faint }]} />
-          <Text style={F.small}>{onlineConfigured ? "Online: real players first, a fair bot if no one is around" : "Offline mode: fair bots near your rating"}</Text>
+          <Text style={F.small}>{onlineConfigured ? "Online: real players first, a fair bot after 10 s" : "Offline mode: fair bots near your rating"}</Text>
         </View>
       </Appear>
 

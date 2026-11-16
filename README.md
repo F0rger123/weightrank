@@ -67,7 +67,7 @@ flowchart LR
 flowchart LR
   A["Tap Find opponent"] --> B{"Anyone online<br/>near your rating?"}
   B -- "Yes" --> C["Matched with a real player"]
-  B -- "Not within 15 s" --> D["Matched with a fair bot"]
+  B -- "Not within 10 s" --> D["Matched with a fair bot"]
   C --> E["Both phones count down together"]
   D --> E
   E --> F["60 seconds, live scores"]
@@ -94,7 +94,8 @@ flowchart LR
 ### ▌ Install
 
 **Android:** open [the latest release](https://github.com/F0rger123/weightrank/releases/latest) on the phone → tap the `.apk` → allow installs from your browser → Install.
-**iPhone:** open the WeightRank web link in Safari → Share → **Add to Home Screen**. (Goes live once web hosting is on: see [`SETUP.md`](SETUP.md).)
+**iPhone:** open **https://f0rger123.github.io/weightrank/** in Safari → Share → **Add to Home Screen**.
+**Updates:** the Android app checks for a new version each time it opens, downloads it, and asks you to tap Install.
 
 ### ▌ Build it
 
